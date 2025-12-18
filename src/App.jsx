@@ -479,7 +479,6 @@ function App() {
                                     className="form-input"
                                     placeholder="Age of used vehicle"
                                     min="0"
-                                    max="5"
                                     required
                                 />
                             </div>
