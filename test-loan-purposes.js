@@ -138,8 +138,8 @@ console.log('\n📜 CIRCULAR RULES:');
 console.log('   • Project Cost = Repairs Cost (as per estimate)');
 console.log('   • ⚠️  MAX LOAN CAP: ₹30,00,000');
 console.log('   • ⚠️  MAX TENURE: 15 years');
+console.log('   • ⚠️  FIXED LTV: 80% (regardless of amount)');
 console.log('   • Property must be ≥ 3 years old');
-console.log('   • LTV: 90%/80%/75% based on project cost');
 
 const repairs = {
     repairsCost: 2500000,
@@ -148,20 +148,20 @@ const repairs = {
 
 const repairs_maxLoan = 3000000; // ₹30L cap
 const repairs_maxTenure = 15; // 15 years max
-const repairs_ltv = repairs.repairsCost <= 3000000 ? 90 : (repairs.repairsCost <= 7500000 ? 80 : 75);
+const repairs_ltv = 80; // FIXED 80%
 const repairs_loanAsPerLTV = repairs.repairsCost * (repairs_ltv / 100);
 const repairs_finalLoan = Math.min(repairs_loanAsPerLTV, repairs_maxLoan);
 
 console.log('\n🧮 CALCULATION:');
 console.log(`   Project Cost = ${formatCurrency(repairs.repairsCost)}`);
-console.log(`   LTV (${repairs_ltv}%): ${formatCurrency(repairs_loanAsPerLTV)}`);
+console.log(`   LTV (${repairs_ltv}% - FIXED): ${formatCurrency(repairs_loanAsPerLTV)}`);
 console.log(`   Purpose Cap: ${formatCurrency(repairs_maxLoan)}`);
 console.log(`   Final Loan = MIN(${formatCurrency(repairs_loanAsPerLTV)}, ${formatCurrency(repairs_maxLoan)})`);
 console.log(`   = ${formatCurrency(repairs_finalLoan)}`);
 console.log(`   Tenure = MIN(${maxTenure}, ${repairs_maxTenure}) = ${Math.min(maxTenure, repairs_maxTenure)} years`);
 console.log(`   Property Age Check: ${repairs.propertyAge} years ≥ 3 ✅`);
 
-console.log('\n✅ RESULT: ₹30L cap and 15-year tenure correctly implemented');
+console.log('\n✅ RESULT: ₹30L cap, 15-year tenure, and 80% fixed LTV correctly implemented');
 
 
 // ===== PURPOSE 5: TAKEOVER =====

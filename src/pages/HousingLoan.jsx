@@ -415,7 +415,7 @@ function HousingLoan() {
             const emiPerLakh = calculateEMIPerLakh(roi, maxTenure)
             const loanAsPerEMI = (availableEMI / emiPerLakh) * 100000
 
-            const ltvRate = getLTV(projectCost)
+            const ltvRate = getLTV(projectCost, loanPurpose)
             let loanAsPerLTV = projectCost * ltvRate
 
             // Takeover-specific logic
@@ -519,7 +519,7 @@ function HousingLoan() {
             const emiPerLakh = calculateEMIPerLakh(roi, maxTenure)
             const loanAsPerEMI = (surplusEMI / emiPerLakh) * 100000
 
-            const ltvRate = getLTV(projectCost)
+            const ltvRate = getLTV(projectCost, loanPurpose)
             let loanAsPerLTV = projectCost * ltvRate
 
             // Takeover-specific logic
