@@ -149,21 +149,24 @@ function HousingLoan() {
 
     // Get sustenance amount (not percentage) based on annual income
     // Returns MONTHLY sustenance deduction amount
-    const getSustenanceAmount = (netMonthlyIncome) => {
-        const annualIncome = netMonthlyIncome * 12
+    // Get sustenance amount based on Annual GROSS Income
+    // Returns MONTHLY sustenance deduction amount applied to Net Income
+    const getSustenanceAmount = (netMonthlyIncome, annualGrossIncome) => {
+        // Use Annual Gross if available, else fallback to Net*12
+        const incomeForSlab = annualGrossIncome || (netMonthlyIncome * 12)
 
-        if (annualIncome <= 300000) {
+        if (incomeForSlab <= 300000) {
             return netMonthlyIncome * 0.45  // 45%
-        } else if (annualIncome <= 500000) {
+        } else if (incomeForSlab <= 500000) {
             return netMonthlyIncome * 0.40  // 40%
-        } else if (annualIncome <= 800000) {
+        } else if (incomeForSlab <= 800000) {
             return netMonthlyIncome * 0.35  // 35%
-        } else if (annualIncome <= 1200000) {
+        } else if (incomeForSlab <= 1200000) {
             return netMonthlyIncome * 0.30  // 30%
         } else {
-            // For income > ₹12L: lower of 25% OR ₹20,000
+            // For Annual Gross > ₹12L: lower of 25% OR ₹2.00 Lakhs monthly
             const twentyFivePercent = netMonthlyIncome * 0.25
-            return Math.min(twentyFivePercent, 20000)
+            return Math.min(twentyFivePercent, 200000) // Updated to 2.00 Lacs
         }
     }
 
@@ -176,8 +179,10 @@ function HousingLoan() {
         return 0.25  // Max 25% for >12L
     }
 
-    // Get LTV based on project cost
-    const getLTV = (projectCost) => {
+    // Get LTV Ratio - Repairs is fixed 80%, others slab-based
+    const getLTV = (projectCost, purpose) => {
+        if (purpose === 'Repairs/Renovation') return 0.80 // Fixed 80% for Repairs
+
         if (projectCost <= 3000000) return 0.90
         if (projectCost <= 7500000) return 0.80
         return 0.75
@@ -497,11 +502,16 @@ function HousingLoan() {
             }
 
             const netMonthlyIncome = calculateNetMonthlyIncome(empType1, '1')
-            const annualIncome = netMonthlyIncome * 12
 
-            // Get sustenance using the correct function
-            const sustenanceAmount = getSustenanceAmount(netMonthlyIncome)
-            const sustenanceRate = getSustenanceRate(annualIncome)
+            // Calculate Annual Gross Income for Slab Check (as per Circular)
+            let annualGrossIncome = netMonthlyIncome * 12
+            if (empType1 === 'Salaried' || empType1 === 'Salaried+Pension') {
+                annualGrossIncome = (Number(formData.grossSalary1) || 0) * 12
+            }
+
+            // Get sustenance using the correct function (Slabs based on Gross, Deduction applied to Net)
+            const sustenanceAmount = getSustenanceAmount(netMonthlyIncome, annualGrossIncome)
+            const sustenanceRate = getSustenanceRate(annualGrossIncome)
 
             const existingEMI = Number(formData.existingEMI1) || 0
             const surplusEMI = netMonthlyIncome - sustenanceAmount - existingEMI
@@ -1453,7 +1463,10 @@ function HousingLoan() {
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">Loan as per LTV ({result.details.ltvRate.toFixed(0)}%)</span>
+                                        <span className="result-label">
+                                            Loan as per LTV ({result.details.ltvRate.toFixed(0)}%)
+                                            {result.details.purpose === 'Repairs/Renovation' && <small style={{ display: 'block', fontSize: '0.7em', color: '#666' }}>(Fixed 80% for Repairs)</small>}
+                                        </span>
                                         <span className="result-value">
                                             ₹{result.details.loanAsPerLTV.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>
@@ -1481,7 +1494,9 @@ function HousingLoan() {
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">Project Cost</span>
+                                        <span className="result-label">
+                                            {result.details.purpose === 'Repairs/Renovation' ? 'Repairs Cost Estimate' : 'Project Cost'}
+                                        </span>
                                         <span className="result-value">
                                             ₹{result.details.projectCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>

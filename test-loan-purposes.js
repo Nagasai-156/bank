@@ -142,8 +142,8 @@ console.log('   • ⚠️  FIXED LTV: 80% (regardless of amount)');
 console.log('   • Property must be ≥ 3 years old');
 
 const repairs = {
-    repairsCost: 2500000,
-    propertyAge: 5
+    repairsCost: 1900000,
+    propertyAge: 16
 };
 
 const repairs_maxLoan = 3000000; // ₹30L cap
@@ -152,12 +152,13 @@ const repairs_ltv = 80; // FIXED 80%
 const repairs_loanAsPerLTV = repairs.repairsCost * (repairs_ltv / 100);
 const repairs_finalLoan = Math.min(repairs_loanAsPerLTV, repairs_maxLoan);
 
-console.log('\n🧮 CALCULATION:');
+console.log('\n🧮 CALCULATION (Screenshot Verification):');
 console.log(`   Project Cost = ${formatCurrency(repairs.repairsCost)}`);
-console.log(`   LTV (${repairs_ltv}% - FIXED): ${formatCurrency(repairs_loanAsPerLTV)}`);
+console.log(`   LTV should be 80% (FIXED) even if cost <= 30L`);
+console.log(`   Expected Loan as per LTV: ${formatCurrency(repairs.repairsCost)} × 80% = ${formatCurrency(repairs_loanAsPerLTV)}`);
+console.log(`   (Previous buggy result was 90% = ₹17,10,000)`);
 console.log(`   Purpose Cap: ${formatCurrency(repairs_maxLoan)}`);
-console.log(`   Final Loan = MIN(${formatCurrency(repairs_loanAsPerLTV)}, ${formatCurrency(repairs_maxLoan)})`);
-console.log(`   = ${formatCurrency(repairs_finalLoan)}`);
+console.log(`   Final Loan = ${formatCurrency(repairs_finalLoan)}`);
 console.log(`   Tenure = MIN(${maxTenure}, ${repairs_maxTenure}) = ${Math.min(maxTenure, repairs_maxTenure)} years`);
 console.log(`   Property Age Check: ${repairs.propertyAge} years ≥ 3 ✅`);
 
