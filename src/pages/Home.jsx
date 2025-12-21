@@ -17,7 +17,7 @@ function Home() {
             description: 'Calculate housing loan eligibility and EMI for staff members',
             icon: '🏠',
             path: '/housing-loan',
-            status: 'coming-soon'
+            status: 'active'
         },
         {
             id: 3,

@@ -1,0 +1,35 @@
+.housing-loan-page {
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+.page-header {
+    background: #f9fafb;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    background: #4f46e5;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    background: #4338ca;
+    transform: translateX(-2px);
+}
+
+.highlight-box {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(124, 58, 237, 0.05));
+    border-left-color: #7c3aed !important;
+    border-left-width: 5px !important;
+}
