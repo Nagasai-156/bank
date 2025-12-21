@@ -106,16 +106,29 @@ function HousingLoan() {
         return { years, months, days, totalYears: years }
     }
 
-    // Format age display
+    // Format age display - round up to next month if days > 0
     const formatAge = (ageObj) => {
-        if (!ageObj || ageObj.years === 0 && ageObj.months === 0 && ageObj.days === 0) {
+        if (!ageObj || (ageObj.years === 0 && ageObj.months === 0 && ageObj.days === 0)) {
             return ''
         }
 
+        // Round up: if there are any days, add to months
+        let years = ageObj.years
+        let months = ageObj.months
+
+        if (ageObj.days > 0) {
+            months += 1  // Round up to next month
+
+            // Handle overflow (12 months = 1 year)
+            if (months >= 12) {
+                years += 1
+                months = 0
+            }
+        }
+
         const parts = []
-        if (ageObj.years > 0) parts.push(`${ageObj.years} ${ageObj.years === 1 ? 'year' : 'years'}`)
-        if (ageObj.months > 0) parts.push(`${ageObj.months} ${ageObj.months === 1 ? 'month' : 'months'}`)
-        if (ageObj.days > 0) parts.push(`${ageObj.days} ${ageObj.days === 1 ? 'day' : 'days'}`)
+        if (years > 0) parts.push(`${years} ${years === 1 ? 'year' : 'years'}`)
+        if (months > 0) parts.push(`${months} ${months === 1 ? 'month' : 'months'}`)
 
         return parts.join(', ')
     }
