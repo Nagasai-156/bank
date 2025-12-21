@@ -4,16 +4,40 @@ import './HousingLoan.css'
 
 function HousingLoan() {
     const [formData, setFormData] = useState({
-        age: '',
-        employmentType: 'Salaried',
-        grossMonthlyIncome: '',
+        // Applicant Mode
+        applicantType: 'Single',
+
+        // Applicant 1 Details
+        dob1: '',
+        employmentType1: 'Salaried',
+        grossSalary1: '',
+        taxDeduction1: '',
+        otherDeductions1: '',
+        cibilScore1: '',
+        cibilClean1: 'YES',
+
+        // Applicant 2 Details (for Joint)
+        dob2: '',
+        employmentType2: 'Salaried',
+        grossSalary2: '',
+        taxDeduction2: '',
+        otherDeductions2: '',
+        cibilScore2: '',
+        cibilClean2: 'YES',
+
+        // Common Details
         existingEMI: '',
-        cibilScore: '',
-        purpose: 'Purchase',
+
+        // Loan Details
+        loanPurpose: 'Purchase',
+
+        // Property Details
+        propertyType: 'Flat',
         propertyLocation: 'Urban',
-        propertyValue: '',
-        tenureRequired: '',
-        coApplicantIncome: ''
+        propertyAge: '',
+        saleAgreementValue: '',
+        realizableValue: '',
+        pendingWorks: ''
     })
 
     const [result, setResult] = useState(null)
@@ -26,22 +50,37 @@ function HousingLoan() {
         }))
     }
 
-    // Get ROI based on CIBIL score
+    // Calculate age from DOB
+    const calculateAge = (dob) => {
+        if (!dob) return 0
+        const today = new Date()
+        const birthDate = new Date(dob)
+        let age = today.getFullYear() - birthDate.getFullYear()
+        const monthDiff = today.getMonth() - birthDate.getMonth()
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--
+        }
+        return age
+    }
+
+    // Get ROI based on CIBIL
     const getROI = (cibil) => {
-        if (cibil >= 800) return 8.00
-        if (cibil >= 750) return 8.25
-        if (cibil >= 700) return 8.50
-        if (cibil >= 650) return 9.00
+        if (cibil >= 750) return 7.75
+        if (cibil >= 700) return 8.25
+        if (cibil >= 650) return 8.75
         return 9.50
     }
 
-    // Get sustenance percentage based on annual income
+    // Get sustenance percentage
     const getSustenanceRate = (annualIncome) => {
         if (annualIncome <= 300000) return 0.45
         if (annualIncome <= 500000) return 0.40
         if (annualIncome <= 800000) return 0.35
         if (annualIncome <= 1200000) return 0.30
-        return Math.min(0.25, 200000 / (annualIncome / 12)) // 25% or ₹2L/month, whichever is lower
+        // Above 12L: Lower of 25% or ₹20,000/month
+        const twentyKPerMonth = 20000
+        const twentyFivePercent = annualIncome * 0.25 / 12
+        return Math.min(twentyFivePercent, twentyKPerMonth) / (annualIncome / 12)
     }
 
     // Get LTV based on loan amount
@@ -60,134 +99,240 @@ function HousingLoan() {
         return emi
     }
 
+    // Get max exit age
+    const getMaxExitAge = (employmentType) => {
+        if (employmentType === 'Salaried') return 60
+        return 75 // Salaried+Pension, Business, Agriculture
+    }
+
     const calculate = (e) => {
         e.preventDefault()
 
-        const age = Number(formData.age)
-        const monthlyIncome = Number(formData.grossMonthlyIncome)
-        const coIncome = Number(formData.coApplicantIncome) || 0
-        const existingEMI = Number(formData.existingEMI) || 0
-        const cibil = Number(formData.cibilScore)
-        const propertyValue = Number(formData.propertyValue)
-        const tenureRequired = Number(formData.tenureRequired)
-        const purpose = formData.purpose
-        const location = formData.propertyLocation
+        const applicantType = formData.applicantType
+        const age1 = calculateAge(formData.dob1)
+        const cibilClean1 = formData.cibilClean1
+        const cibil1 = Number(formData.cibilScore1)
 
-        // STEP 1: Age Eligibility
-        const ageAtLoanEnd = age + tenureRequired
-        if (age < 18) {
+        // HARD CHECK 1: CIBIL Clean Status for Applicant 1
+        if (cibilClean1 !== 'YES') {
             setResult({
                 eligible: false,
-                message: "NOT ELIGIBLE - Age Below Minimum",
-                reason: "Minimum age requirement is 18 years."
+                message: "NOT ELIGIBLE - CIBIL Adverse",
+                reason: "Applicant has adverse CIBIL history (overdues/NPA/write-off/OTS). Loan cannot be processed."
             })
             return
         }
 
-        if (ageAtLoanEnd > 75) {
-            setResult({
-                eligible: false,
-                message: "NOT ELIGIBLE - Age Exceeds Limit",
-                reason: `Age at loan end will be ${ageAtLoanEnd} years. Maximum allowed is 75 years. Please reduce tenure.`
-            })
-            return
-        }
+        // For Joint Applicants
+        if (applicantType === 'Joint') {
+            const age2 = calculateAge(formData.dob2)
+            const cibilClean2 = formData.cibilClean2
 
-        // STEP 2: Tenure Validation
-        let maxTenure = 30
-        if (purpose === 'Repairs' || purpose === 'Renovation') {
-            maxTenure = 15
-        }
-
-        if (tenureRequired > maxTenure) {
-            setResult({
-                eligible: false,
-                message: "NOT ELIGIBLE - Tenure Exceeds Maximum",
-                reason: `Maximum tenure for ${purpose} is ${maxTenure} years. You requested ${tenureRequired} years.`
-            })
-            return
-        }
-
-        // STEP 3: Scheme Cap Based on Location
-        const schemeCap = location === 'Urban' || location === 'Semi-urban' ? 5000000 : 3500000
-
-        // STEP 4: Calculate ROI
-        const roi = getROI(cibil)
-
-        // STEP 5: Calculate Total Income
-        const totalMonthlyIncome = monthlyIncome + coIncome
-        const annualIncome = totalMonthlyIncome * 12
-
-        // STEP 6: Calculate Sustenance
-        const sustenanceRate = getSustenanceRate(annualIncome)
-        const sustenanceAmount = annualIncome * sustenanceRate
-
-        // STEP 7: Calculate Available Income for EMI
-        const availableForEMI = annualIncome - existingEMI * 12 - sustenanceAmount
-
-        if (availableForEMI <= 0) {
-            setResult({
-                eligible: false,
-                message: "NOT ELIGIBLE - Insufficient Income",
-                reason: `After sustenance (${(sustenanceRate * 100).toFixed(0)}%) and existing EMIs, no income is available for new EMI.`
-            })
-            return
-        }
-
-        const maxMonthlyEMI = availableForEMI / 12
-
-        // STEP 8: Calculate EMI per Lakh
-        const emiPerLakh = calculateEMIPerLakh(roi, tenureRequired)
-
-        // STEP 9: Calculate Repayment-Based Loan
-        const repaymentBasedLoan = (maxMonthlyEMI / emiPerLakh) * 100000
-
-        // STEP 10: Calculate LTV-Based Loan
-        // We need to iterate to find the right loan amount that satisfies LTV
-        let ltvBasedLoan = propertyValue * 0.90 // Start with highest LTV
-        const actualLTV = getLTV(ltvBasedLoan)
-        ltvBasedLoan = propertyValue * actualLTV
-
-        // STEP 11: Final Eligible Loan
-        const eligibleLoan = Math.min(repaymentBasedLoan, ltvBasedLoan, schemeCap)
-
-        // Calculate actual LTV for final loan
-        const finalLTV = (eligibleLoan / propertyValue) * 100
-        const marginRequired = propertyValue - eligibleLoan
-        const marginPercentage = (marginRequired / propertyValue) * 100
-
-        // Calculate actual EMI
-        const actualEMI = (eligibleLoan / 100000) * emiPerLakh
-        const totalInterest = (actualEMI * tenureRequired * 12) - eligibleLoan
-        const totalPayable = eligibleLoan + totalInterest
-
-        // STEP 12: Final Output
-        setResult({
-            eligible: true,
-            message: "✅ ELIGIBLE for Housing Loan",
-            details: {
-                eligibleLoan: eligibleLoan,
-                repaymentBasedLoan: repaymentBasedLoan,
-                ltvBasedLoan: ltvBasedLoan,
-                schemeCap: schemeCap,
-                limitingFactor: eligibleLoan === repaymentBasedLoan ? 'Repayment Capacity' :
-                    eligibleLoan === ltvBasedLoan ? 'LTV Limit' : 'Scheme Cap',
-                roi: roi,
-                roiFixed: "Fixed for first 5 years",
-                tenure: tenureRequired,
-                maxTenure: maxTenure,
-                emi: actualEMI,
-                totalInterest: totalInterest,
-                totalPayable: totalPayable,
-                ltvPercentage: finalLTV,
-                marginRequired: marginRequired,
-                marginPercentage: marginPercentage,
-                sustenanceAmount: sustenanceAmount,
-                sustenancePercentage: sustenanceRate * 100,
-                availableForEMI: maxMonthlyEMI,
-                emiPerLakh: emiPerLakh
+            // HARD CHECK 2: Both applicants must have clean CIBIL
+            if (cibilClean2 !== 'YES') {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Co-Applicant CIBIL Adverse",
+                    reason: "Co-applicant has adverse CIBIL history. Joint loan cannot be processed."
+                })
+                return
             }
-        })
+
+            // Determine elder applicant for exit age check
+            const elderAge = Math.max(age1, age2)
+            const elderEmployment = age1 >= age2 ? formData.employmentType1 : formData.employmentType2
+            const maxExitAge = getMaxExitAge(elderEmployment)
+
+            // Assume max tenure 30 years for calculation
+            const exitAge = elderAge + 30
+
+            if (exitAge > maxExitAge) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Exit Age Exceeds Limit",
+                    reason: `Elder applicant's exit age (${exitAge}) exceeds maximum allowed (${maxExitAge}) for ${elderEmployment} category.`
+                })
+                return
+            }
+
+            // Calculate income for both applicants
+            const grossSalary1 = Number(formData.grossSalary1) || 0
+            const taxDeduction1 = Number(formData.taxDeduction1) || 0
+            const otherDeductions1 = Number(formData.otherDeductions1) || 0
+            const netIncome1 = grossSalary1 - taxDeduction1 - otherDeductions1
+
+            const grossSalary2 = Number(formData.grossSalary2) || 0
+            const taxDeduction2 = Number(formData.taxDeduction2) || 0
+            const otherDeductions2 = Number(formData.otherDeductions2) || 0
+            const netIncome2 = grossSalary2 - taxDeduction2 - otherDeductions2
+
+            // Joint EMI Calculation: 65% of each applicant's net income
+            const eligibleEMI1 = netIncome1 * 0.65
+            const eligibleEMI2 = netIncome2 * 0.65
+            const totalEligibleEMI = eligibleEMI1 + eligibleEMI2
+
+            const existingEMI = Number(formData.existingEMI) || 0
+            const availableEMI = totalEligibleEMI - existingEMI
+
+            if (availableEMI <= 0) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Insufficient Repayment Capacity",
+                    reason: `After deducting existing EMIs (₹${existingEMI.toLocaleString('en-IN')}), no surplus available for new EMI.`
+                })
+                return
+            }
+
+            // Calculate loan as per EMI
+            const avgCibil = (cibil1 + Number(formData.cibilScore2)) / 2
+            const roi = getROI(avgCibil)
+            const emiPerLakh = calculateEMIPerLakh(roi, 30) // Assume 30 years
+            const loanAsPerEMI = (availableEMI / emiPerLakh) * 100000
+
+            // Calculate project cost
+            const saleValue = Number(formData.saleAgreementValue) || 0
+            const realizableValue = Number(formData.realizableValue) || 0
+            const pendingWorks = Number(formData.pendingWorks) || 0
+            const projectCost = Math.min(saleValue, realizableValue) + pendingWorks
+
+            // Calculate loan as per LTV
+            let loanAsPerLTV = projectCost * 0.90 // Start with highest
+            const actualLTV = getLTV(loanAsPerLTV)
+            loanAsPerLTV = projectCost * actualLTV
+
+            // Purpose-specific cap
+            let purposeCap = Infinity
+            if (formData.loanPurpose === 'Repairs' || formData.loanPurpose === 'Renovation') {
+                purposeCap = 3000000 // ₹30 Lakhs
+            }
+
+            // Final eligible loan
+            const eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, purposeCap)
+
+            // Calculate actual EMI
+            const actualEMI = (eligibleLoan / 100000) * emiPerLakh
+            const maxTenure = 30
+            const totalInterest = (actualEMI * maxTenure * 12) - eligibleLoan
+            const totalPayable = eligibleLoan + totalInterest
+
+            setResult({
+                eligible: true,
+                message: "✅ ELIGIBLE for Housing Loan (Joint Application)",
+                details: {
+                    eligibleLoan: eligibleLoan,
+                    loanAsPerEMI: loanAsPerEMI,
+                    loanAsPerLTV: loanAsPerLTV,
+                    limitingFactor: eligibleLoan === loanAsPerEMI ? 'Joint EMI Capacity' :
+                        eligibleLoan === loanAsPerLTV ? 'LTV Limit' : 'Purpose Cap',
+                    roi: roi,
+                    maxPermissibleEMI: availableEMI,
+                    maxPermissibleTenure: maxTenure,
+                    actualEMI: actualEMI,
+                    totalInterest: totalInterest,
+                    totalPayable: totalPayable,
+                    projectCost: projectCost,
+                    ltvPercentage: (eligibleLoan / projectCost) * 100,
+                    marginRequired: projectCost - eligibleLoan,
+                    applicant1EMI: eligibleEMI1,
+                    applicant2EMI: eligibleEMI2,
+                    totalEligibleEMI: totalEligibleEMI,
+                    existingEMI: existingEMI
+                }
+            })
+
+        } else {
+            // SINGLE APPLICANT LOGIC
+            const maxExitAge = getMaxExitAge(formData.employmentType1)
+            const exitAge = age1 + 30 // Assume 30 years tenure
+
+            if (exitAge > maxExitAge) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Exit Age Exceeds Limit",
+                    reason: `Exit age (${exitAge}) exceeds maximum allowed (${maxExitAge}) for ${formData.employmentType1} category.`
+                })
+                return
+            }
+
+            // Calculate net income
+            const grossSalary = Number(formData.grossSalary1) || 0
+            const taxDeduction = Number(formData.taxDeduction1) || 0
+            const otherDeductions = Number(formData.otherDeductions1) || 0
+            const netMonthlyIncome = grossSalary - taxDeduction - otherDeductions
+            const annualIncome = netMonthlyIncome * 12
+
+            // Calculate sustenance
+            const sustenanceRate = getSustenanceRate(annualIncome)
+            const sustenanceAmount = netMonthlyIncome * sustenanceRate
+
+            // Calculate surplus EMI
+            const existingEMI = Number(formData.existingEMI) || 0
+            const surplusEMI = netMonthlyIncome - existingEMI - sustenanceAmount
+
+            if (surplusEMI <= 0) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Insufficient Repayment Capacity",
+                    reason: `After sustenance (${(sustenanceRate * 100).toFixed(0)}%) and existing EMIs, no surplus available for new EMI.`
+                })
+                return
+            }
+
+            // Calculate loan as per EMI
+            const roi = getROI(cibil1)
+            const emiPerLakh = calculateEMIPerLakh(roi, 30)
+            const loanAsPerEMI = (surplusEMI / emiPerLakh) * 100000
+
+            // Calculate project cost
+            const saleValue = Number(formData.saleAgreementValue) || 0
+            const realizableValue = Number(formData.realizableValue) || 0
+            const pendingWorks = Number(formData.pendingWorks) || 0
+            const projectCost = Math.min(saleValue, realizableValue) + pendingWorks
+
+            // Calculate loan as per LTV
+            let loanAsPerLTV = projectCost * 0.90
+            const actualLTV = getLTV(loanAsPerLTV)
+            loanAsPerLTV = projectCost * actualLTV
+
+            // Purpose-specific cap
+            let purposeCap = Infinity
+            if (formData.loanPurpose === 'Repairs' || formData.loanPurpose === 'Renovation') {
+                purposeCap = 3000000
+            }
+
+            // Final eligible loan
+            const eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, purposeCap)
+
+            // Calculate actual EMI
+            const actualEMI = (eligibleLoan / 100000) * emiPerLakh
+            const maxTenure = 30
+            const totalInterest = (actualEMI * maxTenure * 12) - eligibleLoan
+            const totalPayable = eligibleLoan + totalInterest
+
+            setResult({
+                eligible: true,
+                message: "✅ ELIGIBLE for Housing Loan",
+                details: {
+                    eligibleLoan: eligibleLoan,
+                    loanAsPerEMI: loanAsPerEMI,
+                    loanAsPerLTV: loanAsPerLTV,
+                    limitingFactor: eligibleLoan === loanAsPerEMI ? 'EMI Capacity' :
+                        eligibleLoan === loanAsPerLTV ? 'LTV Limit' : 'Purpose Cap',
+                    roi: roi,
+                    maxPermissibleEMI: surplusEMI,
+                    maxPermissibleTenure: maxTenure,
+                    actualEMI: actualEMI,
+                    totalInterest: totalInterest,
+                    totalPayable: totalPayable,
+                    projectCost: projectCost,
+                    ltvPercentage: (eligibleLoan / projectCost) * 100,
+                    marginRequired: projectCost - eligibleLoan,
+                    sustenanceAmount: sustenanceAmount,
+                    sustenancePercentage: sustenanceRate * 100,
+                    netMonthlyIncome: netMonthlyIncome
+                }
+            })
+        }
     }
 
     return (
@@ -200,29 +345,55 @@ function HousingLoan() {
                 <div className="calculator-container">
                     <div className="header">
                         <div className="header-icon">🏠</div>
-                        <h1 className="title">Housing Loan Calculator</h1>
-                        <p className="subtitle">Based on Circular No. 186 - APGB Home Loans (Fixed ROI)</p>
+                        <h1 className="title">APGB Home Loan Eligibility Calculator</h1>
+                        <p className="subtitle">CPC-Style Eligibility Check | Circular No. 186/2025</p>
                     </div>
 
                     <form onSubmit={calculate}>
+                        {/* Applicant Type Selection */}
+                        <div className="section-header">
+                            <h3>📋 Application Type</h3>
+                        </div>
                         <div className="form-grid">
-                            {/* Applicant Details */}
+                            <div className="form-group full-width">
+                                <label className="form-label">
+                                    <span className="label-icon">👥</span>
+                                    Applicant Type
+                                </label>
+                                <select
+                                    name="applicantType"
+                                    value={formData.applicantType}
+                                    onChange={handleChange}
+                                    className="form-select"
+                                    required
+                                >
+                                    <option value="Single">Single Applicant</option>
+                                    <option value="Joint">Joint Applicants (2 persons)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Applicant 1 Details */}
+                        <div className="section-header">
+                            <h3>👤 {formData.applicantType === 'Joint' ? 'Applicant 1 Details' : 'Applicant Details'}</h3>
+                        </div>
+                        <div className="form-grid">
                             <div className="form-group">
                                 <label className="form-label">
-                                    <span className="label-icon">👤</span>
-                                    Age (years)
+                                    <span className="label-icon">📅</span>
+                                    Date of Birth
                                 </label>
                                 <input
-                                    type="number"
-                                    name="age"
-                                    value={formData.age}
+                                    type="date"
+                                    name="dob1"
+                                    value={formData.dob1}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Enter your age"
-                                    min="18"
-                                    max="75"
                                     required
                                 />
+                                {formData.dob1 && (
+                                    <small className="helper-text">Age: {calculateAge(formData.dob1)} years</small>
+                                )}
                             </div>
 
                             <div className="form-group">
@@ -231,30 +402,31 @@ function HousingLoan() {
                                     Employment Type
                                 </label>
                                 <select
-                                    name="employmentType"
-                                    value={formData.employmentType}
+                                    name="employmentType1"
+                                    value={formData.employmentType1}
                                     onChange={handleChange}
                                     className="form-select"
                                     required
                                 >
                                     <option value="Salaried">Salaried</option>
-                                    <option value="Self-employed">Self-employed</option>
-                                    <option value="Pension">Pension</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Agriculture">Agriculture</option>
+                                    <option value="Salaried+Pension">Salaried + Pension</option>
                                 </select>
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">
                                     <span className="label-icon">💰</span>
-                                    Gross Monthly Income (₹)
+                                    Gross Monthly Salary (₹)
                                 </label>
                                 <input
                                     type="number"
-                                    name="grossMonthlyIncome"
-                                    value={formData.grossMonthlyIncome}
+                                    name="grossSalary1"
+                                    value={formData.grossSalary1}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Enter monthly income"
+                                    placeholder="Enter gross salary"
                                     min="0"
                                     required
                                 />
@@ -262,24 +434,212 @@ function HousingLoan() {
 
                             <div className="form-group">
                                 <label className="form-label">
-                                    <span className="label-icon">👥</span>
-                                    Co-Applicant Income (₹/month)
+                                    <span className="label-icon">📉</span>
+                                    Monthly Tax Deduction (₹)
                                 </label>
                                 <input
                                     type="number"
-                                    name="coApplicantIncome"
-                                    value={formData.coApplicantIncome}
+                                    name="taxDeduction1"
+                                    value={formData.taxDeduction1}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Optional - if any"
+                                    placeholder="Tax deducted"
                                     min="0"
                                 />
                             </div>
 
                             <div className="form-group">
                                 <label className="form-label">
-                                    <span className="label-icon">💳</span>
-                                    Existing EMI (₹/month)
+                                    <span className="label-icon">📊</span>
+                                    Other Monthly Deductions (₹)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="otherDeductions1"
+                                    value={formData.otherDeductions1}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="PF, insurance, etc."
+                                    min="0"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <span className="label-icon">📈</span>
+                                    CIBIL Score
+                                </label>
+                                <input
+                                    type="number"
+                                    name="cibilScore1"
+                                    value={formData.cibilScore1}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="Enter CIBIL score"
+                                    min="300"
+                                    max="900"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <span className="label-icon">✅</span>
+                                    CIBIL Clean Status
+                                </label>
+                                <select
+                                    name="cibilClean1"
+                                    value={formData.cibilClean1}
+                                    onChange={handleChange}
+                                    className="form-select"
+                                    required
+                                >
+                                    <option value="YES">YES - No overdues/NPA/Write-off</option>
+                                    <option value="NO">NO - Has adverse history</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Applicant 2 Details (Only for Joint) */}
+                        {formData.applicantType === 'Joint' && (
+                            <>
+                                <div className="section-header">
+                                    <h3>👤 Applicant 2 Details</h3>
+                                </div>
+                                <div className="form-grid">
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">📅</span>
+                                            Date of Birth
+                                        </label>
+                                        <input
+                                            type="date"
+                                            name="dob2"
+                                            value={formData.dob2}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            required
+                                        />
+                                        {formData.dob2 && (
+                                            <small className="helper-text">Age: {calculateAge(formData.dob2)} years</small>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">💼</span>
+                                            Employment Type
+                                        </label>
+                                        <select
+                                            name="employmentType2"
+                                            value={formData.employmentType2}
+                                            onChange={handleChange}
+                                            className="form-select"
+                                            required
+                                        >
+                                            <option value="Salaried">Salaried</option>
+                                            <option value="Business">Business</option>
+                                            <option value="Agriculture">Agriculture</option>
+                                            <option value="Salaried+Pension">Salaried + Pension</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">💰</span>
+                                            Gross Monthly Salary (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="grossSalary2"
+                                            value={formData.grossSalary2}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            placeholder="Enter gross salary"
+                                            min="0"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">📉</span>
+                                            Monthly Tax Deduction (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="taxDeduction2"
+                                            value={formData.taxDeduction2}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            placeholder="Tax deducted"
+                                            min="0"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">📊</span>
+                                            Other Monthly Deductions (₹)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="otherDeductions2"
+                                            value={formData.otherDeductions2}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            placeholder="PF, insurance, etc."
+                                            min="0"
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">📈</span>
+                                            CIBIL Score
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="cibilScore2"
+                                            value={formData.cibilScore2}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            placeholder="Enter CIBIL score"
+                                            min="300"
+                                            max="900"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">
+                                            <span className="label-icon">✅</span>
+                                            CIBIL Clean Status
+                                        </label>
+                                        <select
+                                            name="cibilClean2"
+                                            value={formData.cibilClean2}
+                                            onChange={handleChange}
+                                            className="form-select"
+                                            required
+                                        >
+                                            <option value="YES">YES - No overdues/NPA/Write-off</option>
+                                            <option value="NO">NO - Has adverse history</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Common Credit Details */}
+                        <div className="section-header">
+                            <h3>💳 Credit Details</h3>
+                        </div>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <span className="label-icon">💸</span>
+                                    Existing Monthly EMI (₹)
                                 </label>
                                 <input
                                     type="number"
@@ -291,45 +651,54 @@ function HousingLoan() {
                                     min="0"
                                 />
                             </div>
+                        </div>
 
+                        {/* Loan Details */}
+                        <div className="section-header">
+                            <h3>🎯 Loan Details</h3>
+                        </div>
+                        <div className="form-grid">
                             <div className="form-group">
                                 <label className="form-label">
-                                    <span className="label-icon">📊</span>
-                                    CIBIL Score
-                                </label>
-                                <input
-                                    type="number"
-                                    name="cibilScore"
-                                    value={formData.cibilScore}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="Enter CIBIL score"
-                                    min="300"
-                                    max="900"
-                                    required
-                                />
-                            </div>
-
-                            {/* Loan Details */}
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">🎯</span>
+                                    <span className="label-icon">📝</span>
                                     Loan Purpose
                                 </label>
                                 <select
-                                    name="purpose"
-                                    value={formData.purpose}
+                                    name="loanPurpose"
+                                    value={formData.loanPurpose}
                                     onChange={handleChange}
                                     className="form-select"
                                     required
                                 >
-                                    <option value="Purchase">Purchase of House/Flat</option>
+                                    <option value="Purchase">Purchase</option>
                                     <option value="Construction">Construction</option>
                                     <option value="Plot+Construction">Plot + Construction</option>
-                                    <option value="Extension">Extension/Additional Floor</option>
                                     <option value="Repairs">Repairs</option>
                                     <option value="Renovation">Renovation</option>
-                                    <option value="Takeover">Takeover of Existing Loan</option>
+                                    <option value="Takeover">Takeover</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Property Details */}
+                        <div className="section-header">
+                            <h3>🏘️ Property Details</h3>
+                        </div>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <span className="label-icon">🏢</span>
+                                    Property Type
+                                </label>
+                                <select
+                                    name="propertyType"
+                                    value={formData.propertyType}
+                                    onChange={handleChange}
+                                    className="form-select"
+                                    required
+                                >
+                                    <option value="Flat">Residential Flat</option>
+                                    <option value="Building">Residential Building</option>
                                 </select>
                             </div>
 
@@ -353,16 +722,16 @@ function HousingLoan() {
 
                             <div className="form-group">
                                 <label className="form-label">
-                                    <span className="label-icon">🏘️</span>
-                                    Property Value (₹)
+                                    <span className="label-icon">⏱️</span>
+                                    Age of Property (Years)
                                 </label>
                                 <input
                                     type="number"
-                                    name="propertyValue"
-                                    value={formData.propertyValue}
+                                    name="propertyAge"
+                                    value={formData.propertyAge}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Net Realizable Value"
+                                    placeholder="Property age"
                                     min="0"
                                     required
                                 />
@@ -370,25 +739,57 @@ function HousingLoan() {
 
                             <div className="form-group">
                                 <label className="form-label">
-                                    <span className="label-icon">📅</span>
-                                    Tenure Required (years)
+                                    <span className="label-icon">📄</span>
+                                    Sale Agreement Value (₹)
                                 </label>
                                 <input
                                     type="number"
-                                    name="tenureRequired"
-                                    value={formData.tenureRequired}
+                                    name="saleAgreementValue"
+                                    value={formData.saleAgreementValue}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Loan tenure in years"
-                                    min="1"
-                                    max="30"
+                                    placeholder="As per agreement"
+                                    min="0"
                                     required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <span className="label-icon">💎</span>
+                                    Realizable Value (₹)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="realizableValue"
+                                    value={formData.realizableValue}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="Valuer estimate"
+                                    min="0"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <span className="label-icon">🔨</span>
+                                    Cost of Pending Works (₹)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="pendingWorks"
+                                    value={formData.pendingWorks}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="If any"
+                                    min="0"
                                 />
                             </div>
                         </div>
 
                         <button type="submit" className="calculate-btn">
-                            Calculate Eligibility
+                            Check Eligibility
                         </button>
                     </form>
 
@@ -404,7 +805,7 @@ function HousingLoan() {
                             ) : (
                                 <div className="result-details">
                                     <div className="result-item highlight-box">
-                                        <span className="result-label">Eligible Loan Amount</span>
+                                        <span className="result-label">Maximum Eligible Loan Amount</span>
                                         <span className="result-value highlight">
                                             ₹{result.details.eligibleLoan.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>
@@ -416,54 +817,40 @@ function HousingLoan() {
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">Repayment Capacity Based</span>
+                                        <span className="result-label">Loan as per EMI Capacity</span>
                                         <span className="result-value">
-                                            ₹{result.details.repaymentBasedLoan.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.loanAsPerEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">LTV Based Loan</span>
+                                        <span className="result-label">Loan as per LTV</span>
                                         <span className="result-value">
-                                            ₹{result.details.ltvBasedLoan.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.loanAsPerLTV.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">Scheme Cap ({formData.propertyLocation})</span>
-                                        <span className="result-value">
-                                            ₹{result.details.schemeCap.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                                        </span>
-                                    </div>
-
-                                    <div className="result-item">
-                                        <span className="result-label">Rate of Interest</span>
+                                        <span className="result-label">Applicable ROI</span>
                                         <span className="result-value">{result.details.roi}% p.a</span>
                                     </div>
 
-                                    <div className="result-item">
-                                        <span className="result-label">ROI Status</span>
-                                        <span className="result-value">{result.details.roiFixed}</span>
-                                    </div>
-
-                                    <div className="result-item">
-                                        <span className="result-label">Loan Tenure</span>
-                                        <span className="result-value">
-                                            {result.details.tenure} years (Max: {result.details.maxTenure} years)
-                                        </span>
-                                    </div>
-
                                     <div className="result-item highlight-box">
-                                        <span className="result-label">Monthly EMI</span>
+                                        <span className="result-label">Maximum Permissible EMI</span>
                                         <span className="result-value highlight">
-                                            ₹{result.details.emi.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
+                                            ₹{result.details.maxPermissibleEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
                                         </span>
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">EMI per Lakh</span>
+                                        <span className="result-label">Maximum Permissible Tenure</span>
+                                        <span className="result-value">{result.details.maxPermissibleTenure} years</span>
+                                    </div>
+
+                                    <div className="result-item">
+                                        <span className="result-label">Actual EMI (if full loan taken)</span>
                                         <span className="result-value">
-                                            ₹{result.details.emiPerLakh.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                            ₹{result.details.actualEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
                                         </span>
                                     </div>
 
@@ -482,6 +869,13 @@ function HousingLoan() {
                                     </div>
 
                                     <div className="result-item">
+                                        <span className="result-label">Project Cost</span>
+                                        <span className="result-value">
+                                            ₹{result.details.projectCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                        </span>
+                                    </div>
+
+                                    <div className="result-item">
                                         <span className="result-label">LTV Percentage</span>
                                         <span className="result-value">
                                             {result.details.ltvPercentage.toFixed(2)}%
@@ -492,33 +886,61 @@ function HousingLoan() {
                                         <span className="result-label">Margin Required</span>
                                         <span className="result-value">
                                             ₹{result.details.marginRequired.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                                            ({result.details.marginPercentage.toFixed(2)}%)
                                         </span>
                                     </div>
 
-                                    <div className="result-item">
-                                        <span className="result-label">Sustenance Amount (Annual)</span>
-                                        <span className="result-value">
-                                            ₹{result.details.sustenanceAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                                            ({result.details.sustenancePercentage.toFixed(0)}%)
-                                        </span>
-                                    </div>
+                                    {formData.applicantType === 'Joint' && (
+                                        <>
+                                            <div className="result-item">
+                                                <span className="result-label">Applicant 1 Eligible EMI (65%)</span>
+                                                <span className="result-value">
+                                                    ₹{result.details.applicant1EMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                </span>
+                                            </div>
 
-                                    <div className="result-item">
-                                        <span className="result-label">Available for EMI</span>
-                                        <span className="result-value">
-                                            ₹{result.details.availableForEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
-                                        </span>
-                                    </div>
+                                            <div className="result-item">
+                                                <span className="result-label">Applicant 2 Eligible EMI (65%)</span>
+                                                <span className="result-value">
+                                                    ₹{result.details.applicant2EMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                </span>
+                                            </div>
+
+                                            <div className="result-item">
+                                                <span className="result-label">Total Eligible EMI (Combined)</span>
+                                                <span className="result-value">
+                                                    ₹{result.details.totalEligibleEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {formData.applicantType === 'Single' && result.details.sustenanceAmount && (
+                                        <>
+                                            <div className="result-item">
+                                                <span className="result-label">Sustenance Amount</span>
+                                                <span className="result-value">
+                                                    ₹{result.details.sustenanceAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                    ({result.details.sustenancePercentage.toFixed(0)}%)
+                                                </span>
+                                            </div>
+
+                                            <div className="result-item">
+                                                <span className="result-label">Net Monthly Income</span>
+                                                <span className="result-value">
+                                                    ₹{result.details.netMonthlyIncome.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>
                     )}
 
                     <div className="footer">
-                        <p>© 2024 Housing Loan Calculator | Based on Circular No. 186 - APGB Home Loans</p>
+                        <p>© 2024 APGB Home Loan Eligibility Calculator | CPC-Style Logic</p>
                         <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                            All calculations follow the official circular guidelines
+                            Based on Circular No. 186/2025 | For eligibility check only
                         </p>
                     </div>
                 </div>
