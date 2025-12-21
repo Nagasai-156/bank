@@ -121,7 +121,13 @@ function HousingLoan() {
     }
 
     // Get ROI based on CIBIL
+    // As per Circular: NTC (-1), scores 1-5, 100-200 are treated same as 700-749
     const getROI = (cibil) => {
+        // Special cases: NTC (-1), 1-5, 100-200 → 8.25%
+        if (cibil === -1 || (cibil >= 1 && cibil <= 5) || (cibil >= 100 && cibil <= 200)) {
+            return 8.25
+        }
+        // Standard CIBIL ranges
         if (cibil >= 750) return 7.75
         if (cibil >= 700) return 8.25
         if (cibil >= 650) return 8.75
@@ -221,12 +227,17 @@ function HousingLoan() {
             return
         }
 
-        // HARD GATE: CIBIL Score < 650
-        if (cibil1 < 650) {
+        // HARD GATE: CIBIL Score check
+        // Special cases: NTC (-1), 1-5, 100-200 are allowed at 8.25% ROI
+        const isSpecialCIBIL = (score) => {
+            return score === -1 || (score >= 1 && score <= 5) || (score >= 100 && score <= 200)
+        }
+
+        if (cibil1 < 650 && !isSpecialCIBIL(cibil1)) {
             setResult({
                 eligible: false,
                 message: "NOT ELIGIBLE - Low CIBIL Score",
-                reason: `CIBIL score (${cibil1}) is below minimum required (650).`
+                reason: `CIBIL score (${cibil1}) is below minimum required (650). Note: NTC (-1), 1-5, 100-200 are exceptions.`
             })
             return
         }
@@ -320,11 +331,11 @@ function HousingLoan() {
                 return
             }
 
-            if (cibil2 < 650) {
+            if (cibil2 < 650 && !isSpecialCIBIL(cibil2)) {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Co-Applicant Low CIBIL",
-                    reason: `Co-applicant CIBIL score (${cibil2}) is below minimum (650).`
+                    reason: `Co-applicant CIBIL score (${cibil2}) is below minimum (650). Note: NTC (-1), 1-5, 100-200 are exceptions.`
                 })
                 return
             }
@@ -1170,8 +1181,8 @@ function HousingLoan() {
                                     value={formData.cibilScore1}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Min 650"
-                                    min="300"
+                                    placeholder="Min 650 (or -1/1-5/100-200)"
+                                    min="-1"
                                     max="900"
                                     required
                                 />
@@ -1268,8 +1279,8 @@ function HousingLoan() {
                                             value={formData.cibilScore2}
                                             onChange={handleChange}
                                             className="form-input"
-                                            placeholder="Min 650"
-                                            min="300"
+                                            placeholder="Min 650 (or -1/1-5/100-200)"
+                                            min="-1"
                                             max="900"
                                             required
                                         />
