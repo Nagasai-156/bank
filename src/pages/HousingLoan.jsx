@@ -10,20 +10,16 @@ function HousingLoan() {
         // Applicant 1 Details
         dob1: '',
         employmentType1: 'Salaried',
-        // Salaried Fields
         grossSalary1: '',
         taxDeduction1: '',
         otherDeductions1: '',
-        // Business Fields
         itrYear1_1: '',
         itrYear2_1: '',
         itrYear3_1: '',
         taxYear1_1: '',
         taxYear2_1: '',
         taxYear3_1: '',
-        // Agriculture Fields
         agriIncome1: '',
-        // CIBIL
         cibilScore1: '',
         cibilClean1: 'YES',
         existingEMI1: '',
@@ -45,17 +41,32 @@ function HousingLoan() {
         cibilClean2: 'YES',
         existingEMI2: '',
 
-        // Loan Details
+        // Loan Purpose
         loanPurpose: 'Purchase',
 
-        // Property Details
+        // Common Property Fields
         propertyType: 'Flat',
         propertyLocation: 'Urban',
         propertyAge: '',
+
+        // Purchase-specific
         saleAgreementValue: '',
         realizableValue: '',
-        branchEstimate: '',
-        pendingWorks: ''
+        pendingWorks: '',
+
+        // Construction-specific
+        constructionCost: '',
+
+        // Plot + Construction specific
+        plotValue: '',
+        // constructionCost is reused
+
+        // Repairs/Renovation specific
+        repairsRenovationCost: '',
+
+        // Takeover specific
+        outstandingLoanAmount: ''
+        // realizableValue is reused
     })
 
     const [result, setResult] = useState(null)
@@ -95,7 +106,6 @@ function HousingLoan() {
         if (annualIncome <= 500000) return 0.40
         if (annualIncome <= 800000) return 0.35
         if (annualIncome <= 1200000) return 0.30
-        // Above 12L: Lower of 25% or ₹20,000/month
         const twentyKPerMonth = 20000
         const twentyFivePercent = annualIncome * 0.25 / 12
         return Math.min(twentyFivePercent, twentyKPerMonth) / (annualIncome / 12)
@@ -117,13 +127,13 @@ function HousingLoan() {
         return emi
     }
 
-    // Get max exit age based on employment type
+    // Get max exit age
     const getMaxExitAge = (employmentType) => {
         if (employmentType === 'Salaried') return 60
-        return 75 // Salaried+Pension, Business, Agriculture
+        return 75
     }
 
-    // Calculate net monthly income based on employment type
+    // Calculate net monthly income
     const calculateNetMonthlyIncome = (empType, applicantNum) => {
         if (empType === 'Salaried' || empType === 'Salaried+Pension') {
             const gross = Number(formData[`grossSalary${applicantNum}`]) || 0
@@ -142,7 +152,6 @@ function HousingLoan() {
             const netYear2 = year2 - tax2
             const netYear3 = year3 - tax3
 
-            // Check variation > 25%
             const avg = (netYear1 + netYear2 + netYear3) / 3
             const maxVariation = Math.max(
                 Math.abs(netYear1 - avg) / avg,
@@ -154,7 +163,7 @@ function HousingLoan() {
             if (maxVariation > 0.25) {
                 netAnnualIncome = avg
             } else {
-                netAnnualIncome = netYear1 // Latest year
+                netAnnualIncome = netYear1
             }
             return netAnnualIncome / 12
         } else if (empType === 'Agriculture') {
@@ -172,100 +181,129 @@ function HousingLoan() {
         const cibilClean1 = formData.cibilClean1
         const cibil1 = Number(formData.cibilScore1)
         const empType1 = formData.employmentType1
+        const loanPurpose = formData.loanPurpose
 
-        // HARD GATE 1: CIBIL Clean Status
+        // HARD GATE: CIBIL Clean Status
         if (cibilClean1 !== 'YES') {
             setResult({
                 eligible: false,
                 message: "NOT ELIGIBLE - CIBIL Adverse",
-                reason: "Applicant has adverse CIBIL history (overdues/NPA/write-off/OTS). Loan cannot be processed."
+                reason: "Applicant has adverse CIBIL history (overdues/NPA/write-off/OTS)."
             })
             return
         }
 
-        // HARD GATE 2: CIBIL Score < 650
+        // HARD GATE: CIBIL Score < 650
         if (cibil1 < 650) {
             setResult({
                 eligible: false,
                 message: "NOT ELIGIBLE - Low CIBIL Score",
-                reason: `CIBIL score (${cibil1}) is below minimum required (650). Please improve your credit score.`
+                reason: `CIBIL score (${cibil1}) is below minimum required (650).`
             })
             return
         }
 
-        // Property Validation
+        // Calculate Project Cost based on purpose
+        let projectCost = 0
         const propertyAge = Number(formData.propertyAge) || 0
-        const propertyType = formData.propertyType
-        const maxPropertyAge = propertyType === 'Flat' ? 20 : 25
 
-        if (propertyAge > maxPropertyAge) {
-            setResult({
-                eligible: false,
-                message: "NOT ELIGIBLE - Property Too Old",
-                reason: `${propertyType} age (${propertyAge} years) exceeds maximum allowed (${maxPropertyAge} years).`
-            })
-            return
+        if (loanPurpose === 'Purchase') {
+            const saleValue = Number(formData.saleAgreementValue) || 0
+            const realizableValue = Number(formData.realizableValue) || 0
+            const pendingWorks = Number(formData.pendingWorks) || 0
+            projectCost = Math.min(saleValue, realizableValue) + pendingWorks
+
+            // Property age validation for Purchase
+            const propertyType = formData.propertyType
+            const maxPropertyAge = propertyType === 'Flat' ? 20 : 25
+            if (propertyAge > maxPropertyAge) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Property Too Old",
+                    reason: `${propertyType} age (${propertyAge} years) exceeds maximum (${maxPropertyAge} years).`
+                })
+                return
+            }
+        } else if (loanPurpose === 'Construction') {
+            projectCost = Number(formData.constructionCost) || 0
+        } else if (loanPurpose === 'Plot+Construction') {
+            const plotValue = Number(formData.plotValue) || 0
+            const constructionCost = Number(formData.constructionCost) || 0
+            projectCost = plotValue + constructionCost
+        } else if (loanPurpose === 'Repairs/Renovation') {
+            projectCost = Number(formData.repairsRenovationCost) || 0
+
+            // Property must be ≥ 3 years old
+            if (propertyAge < 3) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Property Too New",
+                    reason: "For repairs/renovation, property must be at least 3 years old."
+                })
+                return
+            }
+        } else if (loanPurpose === 'Takeover') {
+            projectCost = Number(formData.realizableValue) || 0
+
+            // Takeover age validation
+            const propertyType = formData.propertyType
+            const maxPropertyAge = propertyType === 'Flat' ? 20 : 25
+            if (propertyAge > maxPropertyAge) {
+                setResult({
+                    eligible: false,
+                    message: "NOT ELIGIBLE - Property Too Old",
+                    reason: `${propertyType} age (${propertyAge} years) exceeds maximum (${maxPropertyAge} years).`
+                })
+                return
+            }
         }
-
-        // Calculate Project Cost
-        const saleValue = Number(formData.saleAgreementValue) || 0
-        const realizableValue = Number(formData.realizableValue) || 0
-        const branchEstimate = Number(formData.branchEstimate) || realizableValue
-        const pendingWorks = Number(formData.pendingWorks) || 0
-        const projectCost = Math.min(saleValue, realizableValue, branchEstimate) + pendingWorks
 
         if (projectCost <= 0) {
             setResult({
                 eligible: false,
                 message: "NOT ELIGIBLE - Invalid Property Value",
-                reason: "Property valuation is required. Please enter valid property values."
+                reason: "Property cost must be greater than zero."
             })
             return
         }
 
-        // Purpose-specific validation
-        const loanPurpose = formData.loanPurpose
+        // Purpose-specific caps
         let purposeCap = Infinity
         let maxTenureByPurpose = 30
 
-        if (loanPurpose === 'Repairs' || loanPurpose === 'Renovation') {
+        if (loanPurpose === 'Repairs/Renovation') {
             purposeCap = 3000000 // ₹30 Lakhs
             maxTenureByPurpose = 15
         }
 
-        // For JOINT APPLICANTS
+        // FOR JOINT APPLICANTS
         if (applicantType === 'Joint') {
             const age2 = calculateAge(formData.dob2)
             const cibilClean2 = formData.cibilClean2
             const cibil2 = Number(formData.cibilScore2)
             const empType2 = formData.employmentType2
 
-            // HARD GATE: Both must have clean CIBIL
             if (cibilClean2 !== 'YES') {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Co-Applicant CIBIL Adverse",
-                    reason: "Co-applicant has adverse CIBIL history. Joint loan cannot be processed."
+                    reason: "Co-applicant has adverse CIBIL history."
                 })
                 return
             }
 
-            // HARD GATE: Both CIBIL scores >= 650
             if (cibil2 < 650) {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Co-Applicant Low CIBIL",
-                    reason: `Co-applicant CIBIL score (${cibil2}) is below minimum required (650).`
+                    reason: `Co-applicant CIBIL score (${cibil2}) is below minimum (650).`
                 })
                 return
             }
 
-            // Determine elder applicant for exit age
             const elderAge = Math.max(age1, age2)
             const elderEmpType = age1 >= age2 ? empType1 : empType2
             const maxExitAge = getMaxExitAge(elderEmpType)
-
-            // Calculate max tenure
             const maxTenureByAge = maxExitAge - elderAge
             const maxTenure = Math.min(30, maxTenureByAge, maxTenureByPurpose)
 
@@ -273,23 +311,14 @@ function HousingLoan() {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Exit Age Exceeded",
-                    reason: `Elder applicant (age ${elderAge}) cannot have any permissible tenure within exit age limit (${maxExitAge}).`
+                    reason: `Elder applicant (age ${elderAge}) exceeds exit age limit (${maxExitAge}).`
                 })
                 return
             }
 
-            // Property residual life check
-            const loanEndPropertyAge = propertyAge + maxTenure
-            const maxAllowedPropertyAge = propertyType === 'Flat' ? 20 : 25
-            if (loanEndPropertyAge + 5 > maxAllowedPropertyAge + maxTenure) {
-                // Simplified: just check if 5 years residual life possible
-            }
-
-            // Calculate income for both applicants
             const netIncome1 = calculateNetMonthlyIncome(empType1, '1')
             const netIncome2 = calculateNetMonthlyIncome(empType2, '2')
 
-            // Joint EMI: 65% of each applicant's net income
             const eligibleEMI1 = netIncome1 * 0.65
             const eligibleEMI2 = netIncome2 * 0.65
             const totalEligibleEMI = eligibleEMI1 + eligibleEMI2
@@ -309,28 +338,38 @@ function HousingLoan() {
                 return
             }
 
-            // ROI: Take worst (higher) ROI for joint applicants
             const roi1 = getROI(cibil1)
             const roi2 = getROI(cibil2)
             const roi = Math.max(roi1, roi2)
 
-            // Calculate loan as per EMI
             const emiPerLakh = calculateEMIPerLakh(roi, maxTenure)
             const loanAsPerEMI = (availableEMI / emiPerLakh) * 100000
 
-            // Calculate loan as per LTV
             const ltvRate = getLTV(projectCost)
-            const loanAsPerLTV = projectCost * ltvRate
+            let loanAsPerLTV = projectCost * ltvRate
 
-            // Final eligible loan
-            const eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, purposeCap)
+            // Takeover-specific logic
+            let eligibleLoan
+            if (loanPurpose === 'Takeover') {
+                const outstandingAmount = Number(formData.outstandingLoanAmount) || 0
+                eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, outstandingAmount, purposeCap)
+            } else {
+                eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, purposeCap)
+            }
 
-            // Calculate actual EMI
+            // Plot + Construction: Plot ≤ 50% check
+            if (loanPurpose === 'Plot+Construction') {
+                const plotValue = Number(formData.plotValue) || 0
+                const plotPercentage = (plotValue / eligibleLoan) * 100
+                if (plotPercentage > 50) {
+                    eligibleLoan = plotValue / 0.50 // Adjust to make plot exactly 50%
+                }
+            }
+
             const actualEMI = (eligibleLoan / 100000) * emiPerLakh
             const totalInterest = (actualEMI * maxTenure * 12) - eligibleLoan
             const totalPayable = eligibleLoan + totalInterest
 
-            // Guarantor check
             let guarantorRequired = false
             let guarantorReason = ''
 
@@ -338,17 +377,14 @@ function HousingLoan() {
                 guarantorRequired = true
                 guarantorReason = 'Pensioner applicant'
             }
-            if (formData.propertyLocation === 'Rural' &&
-                empType1 !== 'Salaried' && empType2 !== 'Salaried') {
+            if (formData.propertyLocation === 'Rural' && empType1 !== 'Salaried' && empType2 !== 'Salaried') {
                 guarantorRequired = true
                 guarantorReason = 'Rural property with non-salaried applicants'
             }
 
             setResult({
                 eligible: true,
-                message: guarantorRequired
-                    ? "✅ ELIGIBLE (Subject to Guarantor)"
-                    : "✅ ELIGIBLE for Housing Loan (Joint Application)",
+                message: guarantorRequired ? "✅ ELIGIBLE (Subject to Guarantor)" : "✅ ELIGIBLE (Joint Application)",
                 guarantorRequired: guarantorRequired,
                 guarantorReason: guarantorReason,
                 details: {
@@ -357,10 +393,8 @@ function HousingLoan() {
                     loanAsPerLTV: loanAsPerLTV,
                     ltvRate: ltvRate * 100,
                     limitingFactor: eligibleLoan === loanAsPerEMI ? 'Joint EMI Capacity' :
-                        eligibleLoan === loanAsPerLTV ? 'LTV Limit' : 'Purpose Cap',
+                        eligibleLoan === loanAsPerLTV ? 'LTV Limit' : 'Purpose/Outstanding Cap',
                     roi: roi,
-                    roiApplicant1: roi1,
-                    roiApplicant2: roi2,
                     maxPermissibleEMI: availableEMI,
                     maxPermissibleTenure: maxTenure,
                     actualEMI: actualEMI,
@@ -378,7 +412,7 @@ function HousingLoan() {
             })
 
         } else {
-            // SINGLE APPLICANT LOGIC
+            // SINGLE APPLICANT
             const maxExitAge = getMaxExitAge(empType1)
             const maxTenureByAge = maxExitAge - age1
             const maxTenure = Math.min(30, maxTenureByAge, maxTenureByPurpose)
@@ -387,20 +421,17 @@ function HousingLoan() {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Exit Age Exceeded",
-                    reason: `Current age (${age1}) cannot have any permissible tenure within exit age limit (${maxExitAge}).`
+                    reason: `Current age (${age1}) exceeds permissible tenure within exit age limit (${maxExitAge}).`
                 })
                 return
             }
 
-            // Calculate net income
             const netMonthlyIncome = calculateNetMonthlyIncome(empType1, '1')
             const annualIncome = netMonthlyIncome * 12
 
-            // Calculate sustenance
             const sustenanceRate = getSustenanceRate(annualIncome)
             const sustenanceAmount = netMonthlyIncome * sustenanceRate
 
-            // Calculate surplus EMI
             const existingEMI = Number(formData.existingEMI1) || 0
             const surplusEMI = netMonthlyIncome - sustenanceAmount - existingEMI
 
@@ -408,29 +439,40 @@ function HousingLoan() {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Insufficient Repayment Capacity",
-                    reason: `After sustenance (${(sustenanceRate * 100).toFixed(0)}%) and existing EMIs (₹${existingEMI.toLocaleString('en-IN')}), no surplus available for new EMI.`
+                    reason: `After sustenance (${(sustenanceRate * 100).toFixed(0)}%) and existing EMIs (₹${existingEMI.toLocaleString('en-IN')}), no surplus available.`
                 })
                 return
             }
 
-            // Calculate loan as per EMI
             const roi = getROI(cibil1)
             const emiPerLakh = calculateEMIPerLakh(roi, maxTenure)
             const loanAsPerEMI = (surplusEMI / emiPerLakh) * 100000
 
-            // Calculate loan as per LTV
             const ltvRate = getLTV(projectCost)
-            const loanAsPerLTV = projectCost * ltvRate
+            let loanAsPerLTV = projectCost * ltvRate
 
-            // Final eligible loan
-            const eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, purposeCap)
+            // Takeover-specific logic
+            let eligibleLoan
+            if (loanPurpose === 'Takeover') {
+                const outstandingAmount = Number(formData.outstandingLoanAmount) || 0
+                eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, outstandingAmount, purposeCap)
+            } else {
+                eligibleLoan = Math.min(loanAsPerEMI, loanAsPerLTV, purposeCap)
+            }
 
-            // Calculate actual EMI
+            // Plot + Construction: Plot ≤ 50% check
+            if (loanPurpose === 'Plot+Construction') {
+                const plotValue = Number(formData.plotValue) || 0
+                const plotPercentage = (plotValue / eligibleLoan) * 100
+                if (plotPercentage > 50) {
+                    eligibleLoan = plotValue / 0.50
+                }
+            }
+
             const actualEMI = (eligibleLoan / 100000) * emiPerLakh
             const totalInterest = (actualEMI * maxTenure * 12) - eligibleLoan
             const totalPayable = eligibleLoan + totalInterest
 
-            // Guarantor check
             let guarantorRequired = false
             let guarantorReason = ''
 
@@ -445,9 +487,7 @@ function HousingLoan() {
 
             setResult({
                 eligible: true,
-                message: guarantorRequired
-                    ? "✅ ELIGIBLE (Subject to Guarantor)"
-                    : "✅ ELIGIBLE for Housing Loan",
+                message: guarantorRequired ? "✅ ELIGIBLE (Subject to Guarantor)" : "✅ ELIGIBLE for Housing Loan",
                 guarantorRequired: guarantorRequired,
                 guarantorReason: guarantorReason,
                 details: {
@@ -456,7 +496,7 @@ function HousingLoan() {
                     loanAsPerLTV: loanAsPerLTV,
                     ltvRate: ltvRate * 100,
                     limitingFactor: eligibleLoan === loanAsPerEMI ? 'EMI Capacity' :
-                        eligibleLoan === loanAsPerLTV ? 'LTV Limit' : 'Purpose Cap',
+                        eligibleLoan === loanAsPerLTV ? 'LTV Limit' : 'Purpose/Outstanding Cap',
                     roi: roi,
                     maxPermissibleEMI: surplusEMI,
                     maxPermissibleTenure: maxTenure,
@@ -543,7 +583,7 @@ function HousingLoan() {
                             value={formData[`itrYear1_${applicantNum}`]}
                             onChange={handleChange}
                             className="form-input"
-                            placeholder="Latest year income"
+                            placeholder="Latest year"
                             min="0"
                             required
                         />
@@ -576,7 +616,7 @@ function HousingLoan() {
                             value={formData[`itrYear2_${applicantNum}`]}
                             onChange={handleChange}
                             className="form-input"
-                            placeholder="Previous year income"
+                            placeholder="Previous year"
                             min="0"
                             required
                         />
@@ -609,7 +649,7 @@ function HousingLoan() {
                             value={formData[`itrYear3_${applicantNum}`]}
                             onChange={handleChange}
                             className="form-input"
-                            placeholder="2 years ago income"
+                            placeholder="2 years ago"
                             min="0"
                             required
                         />
@@ -655,6 +695,360 @@ function HousingLoan() {
         return null
     }
 
+    // Render purpose-specific property fields
+    const renderPropertyFields = () => {
+        const purpose = formData.loanPurpose
+
+        if (purpose === 'Purchase') {
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">🏢</span>
+                            Property Type
+                        </label>
+                        <select
+                            name="propertyType"
+                            value={formData.propertyType}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Flat">Residential Flat</option>
+                            <option value="Building">Residential Building</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📍</span>
+                            Property Location
+                        </label>
+                        <select
+                            name="propertyLocation"
+                            value={formData.propertyLocation}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Urban">Urban</option>
+                            <option value="Semi-urban">Semi-urban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">⏱️</span>
+                            Property Age (Years)
+                        </label>
+                        <input
+                            type="number"
+                            name="propertyAge"
+                            value={formData.propertyAge}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Current age"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📄</span>
+                            Sale Agreement Value (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="saleAgreementValue"
+                            value={formData.saleAgreementValue}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="As per agreement"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">💎</span>
+                            Valuer Realizable Value (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="realizableValue"
+                            value={formData.realizableValue}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Valuer estimate"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">🔨</span>
+                            Pending Works Cost (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="pendingWorks"
+                            value={formData.pendingWorks}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Optional"
+                            min="0"
+                        />
+                    </div>
+                </>
+            )
+        } else if (purpose === 'Construction') {
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📍</span>
+                            Property Location
+                        </label>
+                        <select
+                            name="propertyLocation"
+                            value={formData.propertyLocation}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Urban">Urban</option>
+                            <option value="Semi-urban">Semi-urban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">🏗️</span>
+                            Estimated Construction Cost (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="constructionCost"
+                            value={formData.constructionCost}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Engineer/valuer estimate"
+                            min="0"
+                            required
+                        />
+                    </div>
+                </>
+            )
+        } else if (purpose === 'Plot+Construction') {
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📍</span>
+                            Property Location
+                        </label>
+                        <select
+                            name="propertyLocation"
+                            value={formData.propertyLocation}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Urban">Urban</option>
+                            <option value="Semi-urban">Semi-urban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📜</span>
+                            Sale Agreement Value - Plot (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="plotValue"
+                            value={formData.plotValue}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Plot purchase value"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">🏗️</span>
+                            Estimated Construction Cost (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="constructionCost"
+                            value={formData.constructionCost}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Construction estimate"
+                            min="0"
+                            required
+                        />
+                    </div>
+                </>
+            )
+        } else if (purpose === 'Repairs/Renovation') {
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📍</span>
+                            Property Location
+                        </label>
+                        <select
+                            name="propertyLocation"
+                            value={formData.propertyLocation}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Urban">Urban</option>
+                            <option value="Semi-urban">Semi-urban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">🔧</span>
+                            Estimated Repairs/Renovation Cost (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="repairsRenovationCost"
+                            value={formData.repairsRenovationCost}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Repair cost estimate"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">⏱️</span>
+                            Property Age (Years)
+                        </label>
+                        <input
+                            type="number"
+                            name="propertyAge"
+                            value={formData.propertyAge}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Must be ≥ 3 years"
+                            min="3"
+                            required
+                        />
+                    </div>
+                </>
+            )
+        } else if (purpose === 'Takeover') {
+            return (
+                <>
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">🏢</span>
+                            Property Type
+                        </label>
+                        <select
+                            name="propertyType"
+                            value={formData.propertyType}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Flat">Residential Flat</option>
+                            <option value="Building">Residential Building</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📍</span>
+                            Property Location
+                        </label>
+                        <select
+                            name="propertyLocation"
+                            value={formData.propertyLocation}
+                            onChange={handleChange}
+                            className="form-select"
+                            required
+                        >
+                            <option value="Urban">Urban</option>
+                            <option value="Semi-urban">Semi-urban</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">⏱️</span>
+                            Property Age (Years)
+                        </label>
+                        <input
+                            type="number"
+                            name="propertyAge"
+                            value={formData.propertyAge}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Current age"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">📊</span>
+                            Outstanding Loan Amount (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="outstandingLoanAmount"
+                            value={formData.outstandingLoanAmount}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Current outstanding"
+                            min="0"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">
+                            <span className="label-icon">💎</span>
+                            Valuer Realizable Value (₹)
+                        </label>
+                        <input
+                            type="number"
+                            name="realizableValue"
+                            value={formData.realizableValue}
+                            onChange={handleChange}
+                            className="form-input"
+                            placeholder="Valuer estimate"
+                            min="0"
+                            required
+                        />
+                    </div>
+                </>
+            )
+        }
+    }
+
     return (
         <div className="housing-loan-page">
             <div className="page-header">
@@ -666,7 +1060,7 @@ function HousingLoan() {
                     <div className="header">
                         <div className="header-icon">🏠</div>
                         <h1 className="title">APGB Home Loan Eligibility</h1>
-                        <p className="subtitle">CPC-Grade Bank Rule Engine | Circular 186/2025</p>
+                        <p className="subtitle">CPC-Grade | Circular 186/2025</p>
                     </div>
 
                     <form onSubmit={calculate}>
@@ -693,7 +1087,7 @@ function HousingLoan() {
                             </div>
                         </div>
 
-                        {/* Applicant 1 Details */}
+                        {/* Applicant 1 */}
                         <div className="section-header">
                             <h3>👤 {formData.applicantType === 'Joint' ? 'Applicant 1' : 'Applicant Details'}</h3>
                         </div>
@@ -748,7 +1142,7 @@ function HousingLoan() {
                                     value={formData.cibilScore1}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="Min 650 required"
+                                    placeholder="Min 650"
                                     min="300"
                                     max="900"
                                     required
@@ -789,7 +1183,7 @@ function HousingLoan() {
                             </div>
                         </div>
 
-                        {/* Applicant 2 Details (Joint Only) */}
+                        {/* Applicant 2 (Joint Only) */}
                         {formData.applicantType === 'Joint' && (
                             <>
                                 <div className="section-header">
@@ -846,7 +1240,7 @@ function HousingLoan() {
                                             value={formData.cibilScore2}
                                             onChange={handleChange}
                                             className="form-input"
-                                            placeholder="Min 650 required"
+                                            placeholder="Min 650"
                                             min="300"
                                             max="900"
                                             required
@@ -909,135 +1303,18 @@ function HousingLoan() {
                                     <option value="Purchase">Purchase</option>
                                     <option value="Construction">Construction</option>
                                     <option value="Plot+Construction">Plot + Construction</option>
-                                    <option value="Repairs">Repairs (Max ₹30L, 15 yrs)</option>
-                                    <option value="Renovation">Renovation (Max ₹30L, 15 yrs)</option>
+                                    <option value="Repairs/Renovation">Repairs / Renovation (Max ₹30L, 15 yrs)</option>
                                     <option value="Takeover">Takeover</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* Property Details */}
+                        {/* Property Details - PURPOSE-SPECIFIC */}
                         <div className="section-header">
                             <h3>🏘️ Property Details</h3>
                         </div>
                         <div className="form-grid">
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">🏢</span>
-                                    Property Type
-                                </label>
-                                <select
-                                    name="propertyType"
-                                    value={formData.propertyType}
-                                    onChange={handleChange}
-                                    className="form-select"
-                                    required
-                                >
-                                    <option value="Flat">Residential Flat (Max 20 yrs)</option>
-                                    <option value="Building">Residential Building (Max 25 yrs)</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">📍</span>
-                                    Property Location
-                                </label>
-                                <select
-                                    name="propertyLocation"
-                                    value={formData.propertyLocation}
-                                    onChange={handleChange}
-                                    className="form-select"
-                                    required
-                                >
-                                    <option value="Urban">Urban</option>
-                                    <option value="Semi-urban">Semi-urban</option>
-                                    <option value="Rural">Rural</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">⏱️</span>
-                                    Property Age (Years)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="propertyAge"
-                                    value={formData.propertyAge}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="Current age"
-                                    min="0"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">📄</span>
-                                    Sale Agreement Value (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="saleAgreementValue"
-                                    value={formData.saleAgreementValue}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="As per agreement"
-                                    min="0"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">💎</span>
-                                    Valuer Realizable Value (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="realizableValue"
-                                    value={formData.realizableValue}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="Valuer estimate"
-                                    min="0"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">🏛️</span>
-                                    Branch Estimate (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="branchEstimate"
-                                    value={formData.branchEstimate}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="Branch valuation"
-                                    min="0"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">🔨</span>
-                                    Pending Works Cost (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="pendingWorks"
-                                    value={formData.pendingWorks}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="If any"
-                                    min="0"
-                                />
-                            </div>
+                            {renderPropertyFields()}
                         </div>
 
                         <button type="submit" className="calculate-btn">
@@ -1063,7 +1340,7 @@ function HousingLoan() {
                             ) : (
                                 <div className="result-details">
                                     <div className="result-item highlight-box">
-                                        <span className="result-label">Maximum Eligible Loan Amount</span>
+                                        <span className="result-label">Maximum Eligible Loan</span>
                                         <span className="result-value highlight">
                                             ₹{result.details.eligibleLoan.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>
@@ -1099,14 +1376,14 @@ function HousingLoan() {
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">Loan as per LTV ({result.details.ltvRate}%)</span>
+                                        <span className="result-label">Loan as per LTV ({result.details.ltvRate.toFixed(0)}%)</span>
                                         <span className="result-value">
                                             ₹{result.details.loanAsPerLTV.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
-                                        <span className="result-label">Actual EMI (if full loan)</span>
+                                        <span className="result-label">Actual EMI</span>
                                         <span className="result-value">
                                             ₹{result.details.actualEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
                                         </span>
@@ -1143,7 +1420,7 @@ function HousingLoan() {
                                     {formData.applicantType === 'Joint' && (
                                         <>
                                             <div className="result-item">
-                                                <span className="result-label">Applicant 1: Net Income / Eligible EMI (65%)</span>
+                                                <span className="result-label">Applicant 1: Net Income / EMI (65%)</span>
                                                 <span className="result-value">
                                                     ₹{result.details.netIncome1.toLocaleString('en-IN', { maximumFractionDigits: 0 })} /
                                                     ₹{result.details.applicant1EMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
@@ -1151,17 +1428,10 @@ function HousingLoan() {
                                             </div>
 
                                             <div className="result-item">
-                                                <span className="result-label">Applicant 2: Net Income / Eligible EMI (65%)</span>
+                                                <span className="result-label">Applicant 2: Net Income / EMI (65%)</span>
                                                 <span className="result-value">
                                                     ₹{result.details.netIncome2.toLocaleString('en-IN', { maximumFractionDigits: 0 })} /
                                                     ₹{result.details.applicant2EMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                                                </span>
-                                            </div>
-
-                                            <div className="result-item">
-                                                <span className="result-label">Total Existing EMIs</span>
-                                                <span className="result-value">
-                                                    ₹{result.details.totalExistingEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                                 </span>
                                             </div>
                                         </>
@@ -1182,13 +1452,6 @@ function HousingLoan() {
                                                     ₹{result.details.sustenanceAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                                                 </span>
                                             </div>
-
-                                            <div className="result-item">
-                                                <span className="result-label">Existing EMI</span>
-                                                <span className="result-value">
-                                                    ₹{result.details.existingEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                                                </span>
-                                            </div>
                                         </>
                                     )}
                                 </div>
@@ -1197,9 +1460,9 @@ function HousingLoan() {
                     )}
 
                     <div className="footer">
-                        <p>© 2024 APGB Home Loan Eligibility | CPC-Grade Rule Engine</p>
+                        <p>© 2024 APGB Home Loan | CPC-Grade Circular 186/2025</p>
                         <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                            Based on Circular 186/2025 | For eligibility check only, not sanction
+                            100% Circular-Compliant | For eligibility check only
                         </p>
                     </div>
                 </div>
