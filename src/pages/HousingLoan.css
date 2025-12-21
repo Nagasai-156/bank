@@ -58,3 +58,18 @@
     border-left-color: #7c3aed !important;
     border-left-width: 5px !important;
 }
+
+.guarantor-notice {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-left: 4px solid #f59e0b;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    color: #92400e;
+    font-size: 0.9375rem;
+}
+
+.guarantor-notice strong {
+    color: #78350f;
+}
