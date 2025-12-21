@@ -1158,107 +1158,13 @@ function HousingLoan() {
                             </div>
                         </div>
 
-                        {/* Applicant 1 */}
-                        <div className="section-header">
-                            <h3>👤 {formData.applicantType === 'Joint' ? 'Applicant 1' : 'Applicant Details'}</h3>
-                        </div>
-                        <div className="form-grid">
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">📅</span>
-                                    Date of Birth
-                                </label>
-                                <input
-                                    type="date"
-                                    name="dob1"
-                                    value={formData.dob1}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    required
-                                />
-                                {formData.dob1 && (
-                                    <small className="helper-text">Age: {formatAge(calculateAge(formData.dob1))}</small>
-                                )}
-                            </div>
+                        {/* Applicants Row - Side by Side for Joint */}
+                        <div className={`applicants-row ${formData.applicantType === 'Single' ? 'single-applicant-mode' : ''}`}>
 
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">💼</span>
-                                    Employment Type
-                                </label>
-                                <select
-                                    name="employmentType1"
-                                    value={formData.employmentType1}
-                                    onChange={handleChange}
-                                    className="form-select"
-                                    required
-                                >
-                                    <option value="Salaried">Salaried</option>
-                                    <option value="Salaried+Pension">Salaried + Pension</option>
-                                    <option value="Business">Business / Self-Employed</option>
-                                    <option value="Agriculture">Agriculture</option>
-                                </select>
-                            </div>
-
-                            {renderIncomeFields('1', formData.employmentType1)}
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">📈</span>
-                                    CIBIL Score
-                                </label>
-                                <input
-                                    type="number"
-                                    name="cibilScore1"
-                                    value={formData.cibilScore1}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="Min 650 (or -1/1-5/100-200)"
-                                    min="-1"
-                                    max="900"
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">✅</span>
-                                    CIBIL Clean Status
-                                </label>
-                                <select
-                                    name="cibilClean1"
-                                    value={formData.cibilClean1}
-                                    onChange={handleChange}
-                                    className="form-select"
-                                    required
-                                >
-                                    <option value="YES">YES - No overdues/NPA/Write-off</option>
-                                    <option value="NO">NO - Has adverse history</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">
-                                    <span className="label-icon">💸</span>
-                                    Existing Monthly EMI (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="existingEMI1"
-                                    value={formData.existingEMI1}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    placeholder="Total existing EMIs"
-                                    min="0"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Applicant 2 (Joint Only) */}
-                        {formData.applicantType === 'Joint' && (
-                            <>
+                            {/* Applicant 1 Card */}
+                            <div className="applicant-card">
                                 <div className="section-header">
-                                    <h3>👤 Applicant 2</h3>
+                                    <h3>👤 {formData.applicantType === 'Joint' ? 'Applicant 1' : 'Applicant Details'}</h3>
                                 </div>
                                 <div className="form-grid">
                                     <div className="form-group">
@@ -1268,14 +1174,14 @@ function HousingLoan() {
                                         </label>
                                         <input
                                             type="date"
-                                            name="dob2"
-                                            value={formData.dob2}
+                                            name="dob1"
+                                            value={formData.dob1}
                                             onChange={handleChange}
                                             className="form-input"
                                             required
                                         />
-                                        {formData.dob2 && (
-                                            <small className="helper-text">Age: {formatAge(calculateAge(formData.dob2))}</small>
+                                        {formData.dob1 && (
+                                            <small className="helper-text">Age: {formatAge(calculateAge(formData.dob1))}</small>
                                         )}
                                     </div>
 
@@ -1285,8 +1191,8 @@ function HousingLoan() {
                                             Employment Type
                                         </label>
                                         <select
-                                            name="employmentType2"
-                                            value={formData.employmentType2}
+                                            name="employmentType1"
+                                            value={formData.employmentType1}
                                             onChange={handleChange}
                                             className="form-select"
                                             required
@@ -1298,7 +1204,7 @@ function HousingLoan() {
                                         </select>
                                     </div>
 
-                                    {renderIncomeFields('2', formData.employmentType2)}
+                                    {renderIncomeFields('1', formData.employmentType1)}
 
                                     <div className="form-group">
                                         <label className="form-label">
@@ -1307,8 +1213,8 @@ function HousingLoan() {
                                         </label>
                                         <input
                                             type="number"
-                                            name="cibilScore2"
-                                            value={formData.cibilScore2}
+                                            name="cibilScore1"
+                                            value={formData.cibilScore1}
                                             onChange={handleChange}
                                             className="form-input"
                                             placeholder="Min 650 (or -1/1-5/100-200)"
@@ -1324,8 +1230,8 @@ function HousingLoan() {
                                             CIBIL Clean Status
                                         </label>
                                         <select
-                                            name="cibilClean2"
-                                            value={formData.cibilClean2}
+                                            name="cibilClean1"
+                                            value={formData.cibilClean1}
                                             onChange={handleChange}
                                             className="form-select"
                                             required
@@ -1342,17 +1248,117 @@ function HousingLoan() {
                                         </label>
                                         <input
                                             type="number"
-                                            name="existingEMI2"
-                                            value={formData.existingEMI2}
+                                            name="existingEMI1"
+                                            value={formData.existingEMI1}
                                             onChange={handleChange}
                                             className="form-input"
-                                            placeholder="Applicant 2 EMIs"
+                                            placeholder="Total existing EMIs"
                                             min="0"
                                         />
                                     </div>
                                 </div>
-                            </>
-                        )}
+                            </div>
+
+                            {/* Applicant 2 Card (Joint Only) */}
+                            {formData.applicantType === 'Joint' && (
+                                <div className="applicant-card">
+                                    <div className="section-header">
+                                        <h3>👤 Applicant 2</h3>
+                                    </div>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label className="form-label">
+                                                <span className="label-icon">📅</span>
+                                                Date of Birth
+                                            </label>
+                                            <input
+                                                type="date"
+                                                name="dob2"
+                                                value={formData.dob2}
+                                                onChange={handleChange}
+                                                className="form-input"
+                                                required
+                                            />
+                                            {formData.dob2 && (
+                                                <small className="helper-text">Age: {formatAge(calculateAge(formData.dob2))}</small>
+                                            )}
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">
+                                                <span className="label-icon">💼</span>
+                                                Employment Type
+                                            </label>
+                                            <select
+                                                name="employmentType2"
+                                                value={formData.employmentType2}
+                                                onChange={handleChange}
+                                                className="form-select"
+                                                required
+                                            >
+                                                <option value="Salaried">Salaried</option>
+                                                <option value="Salaried+Pension">Salaried + Pension</option>
+                                                <option value="Business">Business / Self-Employed</option>
+                                                <option value="Agriculture">Agriculture</option>
+                                            </select>
+                                        </div>
+
+                                        {renderIncomeFields('2', formData.employmentType2)}
+
+                                        <div className="form-group">
+                                            <label className="form-label">
+                                                <span className="label-icon">📈</span>
+                                                CIBIL Score
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="cibilScore2"
+                                                value={formData.cibilScore2}
+                                                onChange={handleChange}
+                                                className="form-input"
+                                                placeholder="Min 650 (or -1/1-5/100-200)"
+                                                min="-1"
+                                                max="900"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">
+                                                <span className="label-icon">✅</span>
+                                                CIBIL Clean Status
+                                            </label>
+                                            <select
+                                                name="cibilClean2"
+                                                value={formData.cibilClean2}
+                                                onChange={handleChange}
+                                                className="form-select"
+                                                required
+                                            >
+                                                <option value="YES">YES - No overdues/NPA/Write-off</option>
+                                                <option value="NO">NO - Has adverse history</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">
+                                                <span className="label-icon">💸</span>
+                                                Existing Monthly EMI (₹)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                name="existingEMI2"
+                                                value={formData.existingEMI2}
+                                                onChange={handleChange}
+                                                className="form-input"
+                                                placeholder="Applicant 2 EMIs"
+                                                min="0"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Loan Purpose */}
                         <div className="section-header">
