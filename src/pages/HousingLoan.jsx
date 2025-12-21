@@ -79,17 +79,45 @@ function HousingLoan() {
         }))
     }
 
-    // Calculate age from DOB
+    // Calculate exact age from DOB
     const calculateAge = (dob) => {
-        if (!dob) return 0
+        if (!dob) return { years: 0, months: 0, days: 0, totalYears: 0 }
+
         const today = new Date()
         const birthDate = new Date(dob)
-        let age = today.getFullYear() - birthDate.getFullYear()
-        const monthDiff = today.getMonth() - birthDate.getMonth()
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--
+
+        let years = today.getFullYear() - birthDate.getFullYear()
+        let months = today.getMonth() - birthDate.getMonth()
+        let days = today.getDate() - birthDate.getDate()
+
+        // Adjust if days are negative
+        if (days < 0) {
+            months--
+            const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0)
+            days += lastMonth.getDate()
         }
-        return age
+
+        // Adjust if months are negative
+        if (months < 0) {
+            years--
+            months += 12
+        }
+
+        return { years, months, days, totalYears: years }
+    }
+
+    // Format age display
+    const formatAge = (ageObj) => {
+        if (!ageObj || ageObj.years === 0 && ageObj.months === 0 && ageObj.days === 0) {
+            return ''
+        }
+
+        const parts = []
+        if (ageObj.years > 0) parts.push(`${ageObj.years} ${ageObj.years === 1 ? 'year' : 'years'}`)
+        if (ageObj.months > 0) parts.push(`${ageObj.months} ${ageObj.months === 1 ? 'month' : 'months'}`)
+        if (ageObj.days > 0) parts.push(`${ageObj.days} ${ageObj.days === 1 ? 'day' : 'days'}`)
+
+        return parts.join(', ')
     }
 
     // Get ROI based on CIBIL
@@ -177,7 +205,7 @@ function HousingLoan() {
         e.preventDefault()
 
         const applicantType = formData.applicantType
-        const age1 = calculateAge(formData.dob1)
+        const age1 = calculateAge(formData.dob1).totalYears
         const cibilClean1 = formData.cibilClean1
         const cibil1 = Number(formData.cibilScore1)
         const empType1 = formData.employmentType1
@@ -278,7 +306,7 @@ function HousingLoan() {
 
         // FOR JOINT APPLICANTS
         if (applicantType === 'Joint') {
-            const age2 = calculateAge(formData.dob2)
+            const age2 = calculateAge(formData.dob2).totalYears
             const cibilClean2 = formData.cibilClean2
             const cibil2 = Number(formData.cibilScore2)
             const empType2 = formData.employmentType2
@@ -1106,7 +1134,7 @@ function HousingLoan() {
                                     required
                                 />
                                 {formData.dob1 && (
-                                    <small className="helper-text">Age: {calculateAge(formData.dob1)} years</small>
+                                    <small className="helper-text">Age: {formatAge(calculateAge(formData.dob1))}</small>
                                 )}
                             </div>
 
@@ -1204,7 +1232,7 @@ function HousingLoan() {
                                             required
                                         />
                                         {formData.dob2 && (
-                                            <small className="helper-text">Age: {calculateAge(formData.dob2)} years</small>
+                                            <small className="helper-text">Age: {formatAge(calculateAge(formData.dob2))}</small>
                                         )}
                                     </div>
 
