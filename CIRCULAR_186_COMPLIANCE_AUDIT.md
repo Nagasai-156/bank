@@ -65,18 +65,19 @@
 | CIBIL Score | ROI | Status |
 |-------------|-----|--------|
 | ≥ 750 | 7.75% | ✅ Implemented |
-| 700-749 | 8.25% | ✅ Implemented |
-| 650-699 | 8.75% | ✅ Implemented |
+| ≥ 700 and < 750 | 8.25% | ✅ Implemented |
+| **NTC (-1), 1-5, 100-200** | **8.25%** | ✅ Implemented |
+| ≥ 650 and < 700 | 8.75% | ✅ Implemented |
 | Others | 9.50% | ✅ Implemented |
 
-**Note**: Your specification mentioned different rates. Let me verify against circular:
+### Special CIBIL Cases Handled:
+- ✅ **NTC (New To Credit) = -1**: Gets 8.25% ROI
+- ✅ **Scores 1-5**: Gets 8.25% ROI  
+- ✅ **Scores 100-200**: Gets 8.25% ROI
 
-### ⚠️ POTENTIAL DISCREPANCY:
-Based on your earlier instructions, the ROI should be:
-- ≥750: 7.75%
-- ≥700 & <750: 8.25%
-- ≥650 & <700: 8.75%
-- Others: 9.50%
+These special cases are allowed for loan eligibility and treated same as 700-749 range.
+
+### Code Location: Lines 123-135
 
 Currently implemented in code (Line 96-101):
 ```javascript
