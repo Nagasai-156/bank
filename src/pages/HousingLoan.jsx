@@ -134,15 +134,33 @@ function HousingLoan() {
         return 9.50
     }
 
-    // Get sustenance percentage
+    // Get sustenance amount (not percentage) based on annual income
+    // Returns MONTHLY sustenance deduction amount
+    const getSustenanceAmount = (netMonthlyIncome) => {
+        const annualIncome = netMonthlyIncome * 12
+
+        if (annualIncome <= 300000) {
+            return netMonthlyIncome * 0.45  // 45%
+        } else if (annualIncome <= 500000) {
+            return netMonthlyIncome * 0.40  // 40%
+        } else if (annualIncome <= 800000) {
+            return netMonthlyIncome * 0.35  // 35%
+        } else if (annualIncome <= 1200000) {
+            return netMonthlyIncome * 0.30  // 30%
+        } else {
+            // For income > ₹12L: lower of 25% OR ₹20,000
+            const twentyFivePercent = netMonthlyIncome * 0.25
+            return Math.min(twentyFivePercent, 20000)
+        }
+    }
+
+    // Get sustenance percentage for display
     const getSustenanceRate = (annualIncome) => {
         if (annualIncome <= 300000) return 0.45
         if (annualIncome <= 500000) return 0.40
         if (annualIncome <= 800000) return 0.35
         if (annualIncome <= 1200000) return 0.30
-        const twentyKPerMonth = 20000
-        const twentyFivePercent = annualIncome * 0.25 / 12
-        return Math.min(twentyFivePercent, twentyKPerMonth) / (annualIncome / 12)
+        return 0.25  // Max 25% for >12L
     }
 
     // Get LTV based on project cost
@@ -468,8 +486,9 @@ function HousingLoan() {
             const netMonthlyIncome = calculateNetMonthlyIncome(empType1, '1')
             const annualIncome = netMonthlyIncome * 12
 
+            // Get sustenance using the correct function
+            const sustenanceAmount = getSustenanceAmount(netMonthlyIncome)
             const sustenanceRate = getSustenanceRate(annualIncome)
-            const sustenanceAmount = netMonthlyIncome * sustenanceRate
 
             const existingEMI = Number(formData.existingEMI1) || 0
             const surplusEMI = netMonthlyIncome - sustenanceAmount - existingEMI
