@@ -3,6 +3,23 @@
     background: #ffffff;
 }
 
+/* Make the container full width */
+.housing-loan-page .app {
+    max-width: 1400px;
+    width: 95%;
+    padding: 1rem;
+}
+
+.housing-loan-page .calculator-container {
+    padding: 2.5rem 3rem;
+}
+
+/* Make form grid use all available space */
+.housing-loan-page .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+
 .page-header {
     background: #f9fafb;
     padding: 1.5rem 2rem;
@@ -28,6 +45,7 @@
     transform: translateX(-2px);
 }
 
+/* Section Headers */
 .section-header {
     margin: 2rem 0 1rem 0;
     padding-bottom: 0.75rem;
@@ -53,12 +71,14 @@
     grid-column: 1 / -1;
 }
 
+/* Highlight Box */
 .highlight-box {
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(124, 58, 237, 0.05));
     border-left-color: #7c3aed !important;
     border-left-width: 5px !important;
 }
 
+/* Guarantor Notice */
 .guarantor-notice {
     background: #fef3c7;
     border: 1px solid #f59e0b;
@@ -72,4 +92,32 @@
 
 .guarantor-notice strong {
     color: #78350f;
+}
+
+/* Result items in 2 columns on large screens */
+.housing-loan-page .result-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 1024px) {
+    .housing-loan-page .app {
+        width: 98%;
+    }
+}
+
+@media (max-width: 768px) {
+    .housing-loan-page .calculator-container {
+        padding: 1.5rem;
+    }
+
+    .housing-loan-page .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .housing-loan-page .result-details {
+        grid-template-columns: 1fr;
+    }
 }
