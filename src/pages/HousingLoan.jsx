@@ -520,7 +520,7 @@ function HousingLoan() {
                 setResult({
                     eligible: false,
                     message: "NOT ELIGIBLE - Insufficient Repayment Capacity",
-                    reason: `After sustenance (${(sustenanceRate * 100).toFixed(0)}%) and existing EMIs (₹${existingEMI.toLocaleString('en-IN')}), no surplus available.`
+                    reason: `After sustenance (${(sustenanceRate * 100).toFixed(2)}%) and existing EMIs (₹${existingEMI.toLocaleString('en-IN')}), no surplus available.`
                 })
                 return
             }
@@ -1429,14 +1429,14 @@ function HousingLoan() {
                                     <div className="result-item highlight-box">
                                         <span className="result-label">Maximum Eligible Loan</span>
                                         <span className="result-value highlight">
-                                            ₹{result.details.eligibleLoan.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.eligibleLoan.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item highlight-box">
                                         <span className="result-label">Maximum Permissible EMI</span>
                                         <span className="result-value highlight">
-                                            ₹{result.details.maxPermissibleEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
+                                            ₹{result.details.maxPermissibleEMI.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / month
                                         </span>
                                     </div>
 
@@ -1458,38 +1458,38 @@ function HousingLoan() {
                                     <div className="result-item">
                                         <span className="result-label">Loan as per EMI Capacity</span>
                                         <span className="result-value">
-                                            ₹{result.details.loanAsPerEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.loanAsPerEMI.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
                                         <span className="result-label">
-                                            Loan as per LTV ({result.details.ltvRate.toFixed(0)}%)
+                                            Loan as per LTV ({result.details.ltvRate.toFixed(2)}%)
                                             {result.details.purpose === 'Repairs/Renovation' && <small style={{ display: 'block', fontSize: '0.7em', color: '#666' }}>(Fixed 80% for Repairs)</small>}
                                         </span>
                                         <span className="result-value">
-                                            ₹{result.details.loanAsPerLTV.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.loanAsPerLTV.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
                                         <span className="result-label">Actual EMI</span>
                                         <span className="result-value">
-                                            ₹{result.details.actualEMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })} / month
+                                            ₹{result.details.actualEMI.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / month
                                         </span>
                                     </div>
 
                                     <div className="result-item">
                                         <span className="result-label">Total Interest</span>
                                         <span className="result-value">
-                                            ₹{result.details.totalInterest.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.totalInterest.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
                                         <span className="result-label">Total Payable</span>
                                         <span className="result-value">
-                                            ₹{result.details.totalPayable.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.totalPayable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
@@ -1498,14 +1498,14 @@ function HousingLoan() {
                                             {result.details.purpose === 'Repairs/Renovation' ? 'Repairs Cost Estimate' : 'Project Cost'}
                                         </span>
                                         <span className="result-value">
-                                            ₹{result.details.projectCost.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.projectCost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
                                     <div className="result-item">
                                         <span className="result-label">Margin Required</span>
                                         <span className="result-value">
-                                            ₹{result.details.marginRequired.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                            ₹{result.details.marginRequired.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
 
@@ -1514,16 +1514,16 @@ function HousingLoan() {
                                             <div className="result-item">
                                                 <span className="result-label">Applicant 1: Net Income / EMI (65%)</span>
                                                 <span className="result-value">
-                                                    ₹{result.details.netIncome1.toLocaleString('en-IN', { maximumFractionDigits: 0 })} /
-                                                    ₹{result.details.applicant1EMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                    ₹{result.details.netIncome1.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /
+                                                    ₹{result.details.applicant1EMI.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
 
                                             <div className="result-item">
                                                 <span className="result-label">Applicant 2: Net Income / EMI (65%)</span>
                                                 <span className="result-value">
-                                                    ₹{result.details.netIncome2.toLocaleString('en-IN', { maximumFractionDigits: 0 })} /
-                                                    ₹{result.details.applicant2EMI.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                    ₹{result.details.netIncome2.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} /
+                                                    ₹{result.details.applicant2EMI.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </>
@@ -1534,14 +1534,14 @@ function HousingLoan() {
                                             <div className="result-item">
                                                 <span className="result-label">Net Monthly Income</span>
                                                 <span className="result-value">
-                                                    ₹{result.details.netMonthlyIncome.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                    ₹{result.details.netMonthlyIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
 
                                             <div className="result-item">
-                                                <span className="result-label">Sustenance ({result.details.sustenancePercentage.toFixed(0)}%)</span>
+                                                <span className="result-label">Sustenance ({result.details.sustenancePercentage.toFixed(2)}%)</span>
                                                 <span className="result-value">
-                                                    ₹{result.details.sustenanceAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                                                    ₹{result.details.sustenanceAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
                                         </>
