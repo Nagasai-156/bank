@@ -21,6 +21,15 @@ function Home() {
         },
         {
             id: 3,
+            title: 'Home Loan Plus',
+            description: 'Additional loan for existing home loan customers - Personal needs or debt consolidation',
+            icon: '🏡',
+            path: '/home-loan-plus',
+            status: 'active',
+            badge: 'PLUS'
+        },
+        {
+            id: 4,
             title: 'Personal Loan Calculator',
             description: 'Quick personal loan eligibility check with instant EMI calculation',
             icon: '💰',
@@ -28,7 +37,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 4,
+            id: 5,
             title: 'Education Loan Calculator',
             description: 'Calculate education loan for children with subsidy details',
             icon: '🎓',
@@ -36,7 +45,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 5,
+            id: 6,
             title: 'Festival Advance Calculator',
             description: 'Check eligibility for festival advance and repayment schedule',
             icon: '🎉',
@@ -44,7 +53,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 6,
+            id: 7,
             title: 'Salary Advance Calculator',
             description: 'Emergency salary advance eligibility and deduction calculator',
             icon: '💵',
@@ -52,7 +61,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 7,
+            id: 8,
             title: 'Loan Against FD',
             description: 'Calculate loan amount against Fixed Deposit holdings',
             icon: '🏦',
@@ -60,7 +69,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 8,
+            id: 9,
             title: 'Medical Advance Calculator',
             description: 'Medical emergency advance eligibility and documentation',
             icon: '🏥',
@@ -68,7 +77,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 9,
+            id: 10,
             title: 'Retirement Benefits',
             description: 'Calculate retirement benefits, gratuity, and pension details',
             icon: '👴',
@@ -76,7 +85,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 10,
+            id: 11,
             title: 'Leave Encashment',
             description: 'Calculate leave encashment amount and eligibility',
             icon: '📅',
@@ -84,7 +93,7 @@ function Home() {
             status: 'coming-soon'
         },
         {
-            id: 11,
+            id: 12,
             title: 'Loan Restructuring',
             description: 'Restructure existing loans with new tenure and EMI options',
             icon: '🔄',
@@ -110,6 +119,9 @@ function Home() {
                         <div key={service.id} className="service-card">
                             {service.status === 'coming-soon' && (
                                 <div className="coming-soon-badge">Coming Soon</div>
+                            )}
+                            {service.badge === 'PLUS' && (
+                                <div className="plus-badge-home">PLUS</div>
                             )}
 
                             <div className="service-icon">{service.icon}</div>

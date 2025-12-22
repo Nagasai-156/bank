@@ -73,6 +73,21 @@
     letter-spacing: 0.5px;
 }
 
+.plus-badge-home {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
 .service-icon {
     font-size: 3.5rem;
     margin-bottom: 1.25rem;
