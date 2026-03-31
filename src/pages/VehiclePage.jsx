@@ -265,30 +265,39 @@ export default function VehiclePage() {
                   {a.prof === 'business' && (
                     <div className="vc-form-section">
                       <div className="vc-form-title">Business Income (2 Assessment Years)</div>
-                      <div className="vc-itr-table">
-                        <div className="vc-itr-header">
-                          <div>AY</div>
-                          <div>Gross Income (₹)</div>
-                          <div>Income Tax (₹)</div>
-                        </div>
+                      <div className="vc-ay-cards">
                         {[
-                          { lbl: 'AY 2025-26', g: 'ay1g', t: 'ay1t' },
-                          { lbl: 'AY 2024-25', g: 'ay2g', t: 'ay2t' },
+                          { lbl: 'AY 2025-26', tag: 'Latest', g: 'ay1g', t: 'ay1t' },
+                          { lbl: 'AY 2024-25', tag: null, g: 'ay2g', t: 'ay2t' },
                         ].map((row) => (
-                          <div key={row.lbl} className="vc-itr-row">
-                            <div className="vc-itr-label">{row.lbl}</div>
-                            <div className="vc-input-group">
-                              <span className="vc-input-prefix">₹</span>
-                              <input type="number" value={a[row.g]} step={10000} onChange={(e) => patchApplicant(a.id, { [row.g]: e.target.value })} />
+                          <div key={row.lbl} className="vc-ay-card">
+                            <div className="vc-ay-card-header">
+                              <span className="vc-ay-card-year">{row.lbl}</span>
+                              {row.tag && <span className="vc-ay-card-tag">{row.tag}</span>}
                             </div>
-                            <div className="vc-input-group">
-                              <span className="vc-input-prefix">₹</span>
-                              <input type="number" value={a[row.t]} step={5000} onChange={(e) => patchApplicant(a.id, { [row.t]: e.target.value })} />
+                            <div className="vc-ay-card-fields">
+                              <div className="vc-field">
+                                <label>Gross Income</label>
+                                <div className="vc-input-group">
+                                  <span className="vc-input-prefix">₹</span>
+                                  <input type="number" value={a[row.g]} step={10000} placeholder="0" onChange={(e) => patchApplicant(a.id, { [row.g]: e.target.value })} />
+                                </div>
+                              </div>
+                              <div className="vc-field">
+                                <label>Income Tax</label>
+                                <div className="vc-input-group">
+                                  <span className="vc-input-prefix">₹</span>
+                                  <input type="number" value={a[row.t]} step={5000} placeholder="0" onChange={(e) => patchApplicant(a.id, { [row.t]: e.target.value })} />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
-                      <div className="vc-info-box">Average of both AYs used for gross income and tax.</div>
+                      <div className="vc-info-box">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        Average of both AYs used for gross income and tax.
+                      </div>
                     </div>
                   )}
 

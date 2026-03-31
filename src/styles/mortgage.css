@@ -316,42 +316,65 @@
 .mc-hint.success { color: #1b4332; font-weight: 500; }
 .mc-hint.error { color: #dc2626; }
 
-/* ── ITR Table ── */
-.mc-itr-table { display: flex; flex-direction: column; gap: 8px; }
-.mc-itr-header {
-  display: grid;
-  grid-template-columns: 120px 1fr 1fr;
+/* ── AY Cards ── */
+.mc-ay-cards {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0 4px;
 }
-.mc-itr-row {
-  display: grid;
-  grid-template-columns: 120px 1fr 1fr;
-  gap: 10px;
+.mc-ay-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #fafbfc;
+  transition: border-color 0.15s;
+}
+.mc-ay-card:focus-within {
+  border-color: #1b4332;
+  background: #fff;
+}
+.mc-ay-card-header {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
-.mc-itr-label {
+.mc-ay-card-year {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1b4332;
-  background: #f0fdf4;
-  padding: 10px 12px;
-  border-radius: 8px;
-  text-align: center;
+}
+.mc-ay-card-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #065f46;
+  background: #d1fae5;
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+.mc-ay-card-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 .mc-info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin-top: 10px;
   padding: 10px 14px;
   background: #f0fdf4;
-  border-radius: 8px;
+  border: 1px solid #d1fae5;
+  border-radius: 10px;
   font-size: 12px;
   color: #1b4332;
   line-height: 1.5;
+}
+.mc-info-box svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* ── Buttons ── */
@@ -537,17 +560,36 @@
 
 /* ── Responsive ── */
 @media (max-width: 700px) {
-  .mc-container { padding: 1rem; }
+  .mc-container { padding: 0.75rem; }
+  .mc-card { padding: 1.25rem; }
   .mc-form-grid-2, .mc-form-grid-3 { grid-template-columns: 1fr; }
   .mc-prof-grid { grid-template-columns: 1fr; gap: 8px; }
+  .mc-prof-btn {
+    flex-direction: row;
+    padding: 12px 14px;
+    gap: 10px;
+    text-align: left;
+  }
+  .mc-prof-ico { font-size: 1.1rem; }
+  .mc-prof-sub { display: none; }
   .mc-result-grid { grid-template-columns: 1fr 1fr; }
-  .mc-itr-header, .mc-itr-row { grid-template-columns: 80px 1fr 1fr; gap: 6px; }
+  .mc-ay-card-fields { grid-template-columns: 1fr; gap: 10px; }
+  .mc-ay-card { padding: 12px; }
   .mc-step-label { display: none; }
   .mc-step { justify-content: center; padding: 12px; }
+  .mc-toggle { padding: 12px; gap: 10px; }
+  .mc-toggle-icon { font-size: 1.2rem; }
+  .mc-result-hero { padding: 1.5rem; }
+  .mc-nav-buttons { gap: 8px; }
+  .mc-btn-next, .mc-btn-back { padding: 12px 16px; font-size: 13px; }
+  .mc-btn-primary { padding: 12px 20px; font-size: 14px; }
 }
 @media (max-width: 480px) {
   .mc-result-grid { grid-template-columns: 1fr; }
-  .mc-toggle { padding: 12px; }
   .mc-nav-buttons { flex-direction: column; gap: 8px; }
   .mc-nav-buttons > * { width: 100%; justify-content: center; }
+  .mc-card-title { font-size: 15px; }
+  .mc-form-title { font-size: 11px; }
+  .mc-field label { font-size: 11px; }
+  .mc-field input, .mc-field select { height: 42px; font-size: 14px; }
 }

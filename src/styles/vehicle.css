@@ -312,42 +312,65 @@
 }
 .vc-hint.success { color: #1a3a5c; font-weight: 500; }
 
-/* ── ITR Table ── */
-.vc-itr-table { display: flex; flex-direction: column; gap: 8px; }
-.vc-itr-header {
-  display: grid;
-  grid-template-columns: 100px 1fr 1fr;
+/* ── AY Cards ── */
+.vc-ay-cards {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0 4px;
 }
-.vc-itr-row {
-  display: grid;
-  grid-template-columns: 100px 1fr 1fr;
-  gap: 10px;
+.vc-ay-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #fafbfc;
+  transition: border-color 0.15s;
+}
+.vc-ay-card:focus-within {
+  border-color: #1a3a5c;
+  background: #fff;
+}
+.vc-ay-card-header {
+  display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
-.vc-itr-label {
+.vc-ay-card-year {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1a3a5c;
-  background: #eff6ff;
-  padding: 10px 12px;
-  border-radius: 8px;
-  text-align: center;
+}
+.vc-ay-card-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1e40af;
+  background: #dbeafe;
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+.vc-ay-card-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 .vc-info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin-top: 10px;
   padding: 10px 14px;
   background: #eff6ff;
-  border-radius: 8px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
   font-size: 12px;
   color: #1a3a5c;
   line-height: 1.5;
+}
+.vc-info-box svg {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* ── Buttons ── */
@@ -533,17 +556,36 @@
 
 /* ── Responsive ── */
 @media (max-width: 700px) {
-  .vc-container { padding: 1rem; }
+  .vc-container { padding: 0.75rem; }
+  .vc-card { padding: 1.25rem; }
   .vc-form-grid-2, .vc-form-grid-3 { grid-template-columns: 1fr; }
   .vc-prof-grid { grid-template-columns: 1fr; gap: 8px; }
+  .vc-prof-btn {
+    flex-direction: row;
+    padding: 12px 14px;
+    gap: 10px;
+    text-align: left;
+  }
+  .vc-prof-ico { font-size: 1.1rem; }
+  .vc-prof-sub { display: none; }
   .vc-result-grid { grid-template-columns: 1fr 1fr; }
-  .vc-itr-header, .vc-itr-row { grid-template-columns: 80px 1fr 1fr; gap: 6px; }
+  .vc-ay-card-fields { grid-template-columns: 1fr; gap: 10px; }
+  .vc-ay-card { padding: 12px; }
   .vc-step-label { display: none; }
   .vc-step { justify-content: center; padding: 12px; }
+  .vc-toggle { padding: 12px; gap: 10px; }
+  .vc-toggle-icon { font-size: 1.2rem; }
+  .vc-result-hero { padding: 1.5rem; }
+  .vc-nav-buttons { gap: 8px; }
+  .vc-btn-next, .vc-btn-back { padding: 12px 16px; font-size: 13px; }
+  .vc-btn-primary { padding: 12px 20px; font-size: 14px; }
 }
 @media (max-width: 480px) {
   .vc-result-grid { grid-template-columns: 1fr; }
-  .vc-toggle { padding: 12px; }
   .vc-nav-buttons { flex-direction: column; gap: 8px; }
   .vc-nav-buttons > * { width: 100%; justify-content: center; }
+  .vc-card-title { font-size: 15px; }
+  .vc-form-title { font-size: 11px; }
+  .vc-field label { font-size: 11px; }
+  .vc-field input, .vc-field select { height: 42px; font-size: 14px; }
 }

@@ -247,31 +247,40 @@ export default function MortgagePage() {
                   {a.prof === 'business' && (
                     <div className="mc-form-section">
                       <div className="mc-form-title">Business Income (3 Assessment Years)</div>
-                      <div className="mc-itr-table">
-                        <div className="mc-itr-header">
-                          <div>Assessment Year</div>
-                          <div>Gross Income (₹)</div>
-                          <div>Income Tax (₹)</div>
-                        </div>
+                      <div className="mc-ay-cards">
                         {[
-                          { lbl: 'AY 2025-26', g: 'ay2526', t: 'tax2526' },
-                          { lbl: 'AY 2024-25', g: 'ay2425', t: 'tax2425' },
-                          { lbl: 'AY 2023-24', g: 'ay2324', t: 'tax2324' },
+                          { lbl: 'AY 2025-26', tag: 'Latest', g: 'ay2526', t: 'tax2526' },
+                          { lbl: 'AY 2024-25', tag: null, g: 'ay2425', t: 'tax2425' },
+                          { lbl: 'AY 2023-24', tag: null, g: 'ay2324', t: 'tax2324' },
                         ].map((row) => (
-                          <div key={row.lbl} className="mc-itr-row">
-                            <div className="mc-itr-label">{row.lbl}</div>
-                            <div className="mc-input-group">
-                              <span className="mc-input-prefix">₹</span>
-                              <input type="number" value={a[row.g]} step={10000} onChange={(e) => patchApplicant(a.id, { [row.g]: e.target.value })} />
+                          <div key={row.lbl} className="mc-ay-card">
+                            <div className="mc-ay-card-header">
+                              <span className="mc-ay-card-year">{row.lbl}</span>
+                              {row.tag && <span className="mc-ay-card-tag">{row.tag}</span>}
                             </div>
-                            <div className="mc-input-group">
-                              <span className="mc-input-prefix">₹</span>
-                              <input type="number" value={a[row.t]} step={5000} onChange={(e) => patchApplicant(a.id, { [row.t]: e.target.value })} />
+                            <div className="mc-ay-card-fields">
+                              <div className="mc-field">
+                                <label>Gross Income</label>
+                                <div className="mc-input-group">
+                                  <span className="mc-input-prefix">₹</span>
+                                  <input type="number" value={a[row.g]} step={10000} placeholder="0" onChange={(e) => patchApplicant(a.id, { [row.g]: e.target.value })} />
+                                </div>
+                              </div>
+                              <div className="mc-field">
+                                <label>Income Tax</label>
+                                <div className="mc-input-group">
+                                  <span className="mc-input-prefix">₹</span>
+                                  <input type="number" value={a[row.t]} step={5000} placeholder="0" onChange={(e) => patchApplicant(a.id, { [row.t]: e.target.value })} />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
                       </div>
-                      <div className="mc-info-box">Variation &gt;25% across years → average of 3 AYs used. Otherwise latest AY used.</div>
+                      <div className="mc-info-box">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        Variation &gt;25% across years → average of 3 AYs used. Otherwise latest AY used.
+                      </div>
                     </div>
                   )}
 

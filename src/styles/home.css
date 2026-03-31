@@ -441,13 +441,24 @@
 @media (max-width: 700px) {
   .hp-grid { grid-template-columns: 1fr; }
   .hp-trust { grid-template-columns: 1fr; }
-  .hp-hero-inner { padding: 2.5rem 1.25rem 2rem; }
-  .hp-main { padding: 1.5rem 1.25rem 2.5rem; }
+  .hp-hero-inner { padding: 2rem 1rem 1.5rem; }
+  .hp-hero-inner h1 { font-size: 1.5rem; br { display: none; } }
+  .hp-hero-inner p { font-size: 14px; }
+  .hp-main { padding: 1.25rem 1rem 2rem; }
   .hp-hero-metrics { gap: 1.25rem; }
+  .hp-metric-value { font-size: 1.4rem; }
+  .hp-card { padding: 1.25rem; }
+  .hp-card h2 { font-size: 15px; }
+  .hp-card p { font-size: 12px; margin-bottom: 1rem; }
+  .hp-card-cta { padding: 8px 14px; font-size: 12px; }
+  .hp-card-ico { width: 42px; height: 42px; font-size: 1.2rem; }
+  .hp-trust-item { padding: 1rem; }
+  .hp-nav-inner { height: 50px; }
+  .hp-section-label { font-size: 11px; margin-bottom: 0.75rem; }
 }
 @media (max-width: 480px) {
-  .hp-card { padding: 1.25rem; }
-  .hp-hero-inner h1 { font-size: 1.5rem; }
-  .hp-hero-metrics { flex-wrap: wrap; gap: 1rem; }
+  .hp-hero-inner h1 { font-size: 1.35rem; }
+  .hp-hero-metrics { flex-wrap: wrap; gap: 0.75rem; }
   .hp-metric-sep { display: none; }
+  .hp-hero-badge { font-size: 10px; padding: 5px 12px; }
 }
