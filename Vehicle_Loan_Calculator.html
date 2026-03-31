@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicle Loan — Max Eligibility Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1a3a5c;--navy2:#1f4e79;--navy3:#2471a3;--sky:#5dade2;--skylt:#d6eaf8;--gold:#b5874a;--amber:#f0c060;--paper:#f4f6f9;--paper2:#e8edf3;--paper3:#d5dce8;--white:#ffffff;--ink:#1a1f2e;--ink2:#3a4155;--ink3:#6b7494;--green:#1b5e38;--greenlt:#e8f5ee;--red:#a32828;--redlt:#fde8e8;--orange:#8a4800;--orangelt:#fef3dc;--r:10px;--r2:16px;--sh:0 2px 16px rgba(26,58,92,0.10)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:'Source Sans 3',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6}
+.nav{background:var(--navy);height:56px;display:flex;align-items:center;padding:0 1.5rem;gap:1rem;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.2)}
+.nav-back{color:rgba(255,255,255,0.7);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .15s}.nav-back:hover{color:#fff}
+.nav-title{font-family:'Playfair Display',serif;color:#fff;font-size:16px;font-weight:600}
+.hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 55%,var(--navy3) 100%);padding:2.5rem 2rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(181,135,74,0.12) 0%,transparent 60%);pointer-events:none}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(22px,4vw,34px);color:#fff;font-weight:700;margin-bottom:8px;position:relative}
+.hero p{color:rgba(255,255,255,0.6);font-size:14px;font-weight:300;position:relative}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;position:relative}
+.htag{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.8);font-size:11px;padding:4px 13px;border-radius:20px}
+.wrap{max-width:1180px;margin:0 auto;padding:2rem 1.5rem}
+.cols{display:grid;grid-template-columns:1fr 400px;gap:1.75rem;align-items:start}
+@media(max-width:960px){.cols{grid-template-columns:1fr}}
+.card{background:var(--white);border-radius:var(--r2);box-shadow:var(--sh);border:1px solid rgba(26,58,92,0.07);padding:1.5rem;margin-bottom:1.25rem}
+.card-hd{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+.card-hd .dot{width:8px;height:8px;background:var(--gold);border-radius:50%;flex-shrink:0}
+.steps{display:flex;gap:4px;margin-bottom:1.25rem;background:var(--paper2);border-radius:10px;padding:4px}
+.step-btn{flex:1;padding:9px 6px;border:none;background:transparent;border-radius:7px;font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:600;color:var(--ink3);cursor:pointer;transition:all .18s;text-align:center}
+.step-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 6px rgba(26,58,92,0.12)}
+.step-pane{display:none}.step-pane.active{display:block}
+.slbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--navy3);margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid var(--paper3)}
+.veh-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem}
+.vbtn{padding:14px;border:2px solid var(--paper3);border-radius:var(--r);background:var(--white);cursor:pointer;transition:all .18s;text-align:center}
+.vbtn.active{border-color:var(--navy3);background:rgba(36,113,163,0.06)}
+.vbtn-ico{font-size:26px;display:block;margin-bottom:4px}.vbtn-lbl{font-size:13px;font-weight:600;color:var(--ink2)}.vbtn-sub{font-size:11px;color:var(--ink3);margin-top:2px}
+.vbtn.active .vbtn-lbl{color:var(--navy)}
+.prof-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem}
+.ptab{padding:12px 8px;border:2px solid var(--paper3);border-radius:var(--r);background:var(--white);cursor:pointer;text-align:center;transition:all .18s}
+.ptab.active{border-color:var(--navy3);background:rgba(36,113,163,0.05)}
+.ptab-ico{font-size:20px;display:block;margin-bottom:4px}.ptab-lbl{font-size:12px;font-weight:600;color:var(--ink2)}.ptab-sub{font-size:10px;color:var(--ink3);margin-top:2px}
+.ptab.active .ptab-lbl{color:var(--navy)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:640px){.fg,.fg3{grid-template-columns:1fr}}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.04em}
+.fld .hint{font-size:11px;color:var(--ink3)}
+.inp-wrap{position:relative}.inp-pre{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--ink3);pointer-events:none}.has-pre input{padding-left:26px}
+input[type=text],input[type=number],select{width:100%;height:40px;padding:0 12px;border:1.5px solid var(--paper3);border-radius:var(--r);font-family:'Source Sans 3',sans-serif;font-size:14px;color:var(--ink);background:var(--paper);transition:border-color .18s,background .18s;appearance:none;-webkit-appearance:none}
+input:focus,select:focus{outline:none;border-color:var(--navy3);background:var(--white)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7494' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+.ay-lbl{font-size:12px;font-weight:600;color:var(--navy);background:var(--paper);padding:6px 10px;border-radius:6px;text-align:center}
+.appl-block{border:1.5px solid var(--paper3);border-radius:var(--r2);padding:1.25rem;margin-bottom:1rem;background:var(--white)}
+.appl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.appl-num{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.appl-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--navy)}
+.del-btn{background:transparent;border:1px solid var(--paper3);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--red);cursor:pointer;transition:all .15s}.del-btn:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.add-btn{width:100%;padding:10px;border:2px dashed var(--paper3);border-radius:var(--r);background:transparent;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .18s;font-family:'Source Sans 3',sans-serif}
+.add-btn:hover{border-color:var(--navy3);color:var(--navy);background:rgba(36,113,163,0.04)}
+.calc-btn{width:100%;height:52px;background:var(--navy);color:#fff;border:none;border-radius:var(--r2);font-family:'Playfair Display',serif;font-size:17px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(26,58,92,0.22)}
+.calc-btn:hover{background:var(--navy3);transform:translateY(-1px)}
+.div{border:none;border-top:1px solid var(--paper3);margin:1rem 0}
+.res-panel{position:sticky;top:70px}
+.res-hero{background:var(--navy);border-radius:var(--r2);padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.res-hero::after{content:'';position:absolute;right:-30px;bottom:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.04);pointer-events:none}
+.res-lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.45);margin-bottom:6px;font-weight:500}
+.res-amt{font-family:'Playfair Display',serif;font-size:clamp(26px,5vw,38px);color:#fff;line-height:1;font-weight:700}
+.res-sub{font-size:12px;color:rgba(255,255,255,0.45);margin-top:6px}
+.res-badge{display:inline-flex;align-items:center;gap:5px;margin-top:12px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600}
+.res-badge.ok{background:rgba(93,173,226,0.2);color:#74c9ee}.res-badge.no{background:rgba(231,76,60,0.18);color:#e98070}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.mc{background:var(--white);border-radius:var(--r);padding:14px;border:1px solid rgba(26,58,92,0.07);box-shadow:var(--sh)}
+.mc .ml{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:0.04em;font-weight:600;margin-bottom:3px}
+.mc .mv{font-size:18px;font-weight:600;color:var(--navy);font-family:'Playfair Display',serif}
+.mc .ms{font-size:10px;color:var(--ink3);margin-top:2px}
+.bt{width:100%}.btr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--paper3);font-size:13px}.btr:last-child{border:none}
+.btr .bl{color:var(--ink3)}.btr .bv{font-weight:600;color:var(--ink)}.btr.hi .bl{color:var(--navy);font-weight:600}.btr.hi .bv{color:var(--navy3);font-size:15px}
+.alert{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:8px;border-left:3px solid;line-height:1.5}
+.alert.err{background:var(--redlt);border-color:var(--red);color:var(--red)}.alert.warn{background:var(--orangelt);border-color:#c87000;color:var(--orange)}.alert.ok{background:var(--greenlt);border-color:#2d6a4f;color:var(--green)}
+.roi-grid{display:grid;gap:6px;margin-top:8px}
+.roi-b{background:var(--paper);border:2px solid transparent;border-radius:var(--r);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;transition:all .18s}
+.roi-b.active{border-color:var(--navy3);background:rgba(36,113,163,0.05)}.roi-b .rs{font-size:12px;color:var(--ink3)}.roi-b .rv{font-size:15px;font-weight:700;color:var(--navy);font-family:'Playfair Display',serif}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-back">← Back</a>
+  <div class="nav-title">Vehicle Loan — Eligibility Calculator</div>
+</nav>
+<div class="hero">
+  <h1>RIDE EASY — Vehicle Loan Eligibility</h1>
+  <p>Compute maximum eligible loan amount for 2-wheelers and 4-wheelers</p>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(240,192,96,0.18);border:1px solid rgba(240,192,96,0.45);border-radius:20px;padding:6px 16px;margin-top:14px;position:relative">
+    <span style="font-size:14px">🎉</span>
+    <span style="font-size:12px;color:#f0c060;font-weight:600;letter-spacing:0.04em">FESTIVE VIBES 2.0 — Campaign Rates Active</span>
+    <span style="font-size:11px;color:rgba(255,255,255,0.5)">15 Dec 2025 – 15 Mar 2026</span>
+  </div>
+  <div class="hero-tags" style="margin-top:12px">
+    <span class="htag">Auto Max Eligibility</span>
+    <span class="htag">2-Wheeler / 4-Wheeler</span>
+    <span class="htag">CIBIL-linked ROI</span>
+    <span class="htag">Salaried | Business | Agriculture</span>
+    <span class="htag">Multiple Applicants</span>
+  </div>
+</div>
+<div class="wrap"><div class="cols">
+<div>
+<div class="steps">
+  <button class="step-btn active" onclick="goStep(0)">Vehicle &amp; Loan</button>
+  <button class="step-btn" onclick="goStep(1)">Applicants</button>
+</div>
+<div class="step-pane active" id="sp0">
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Vehicle Type</div>
+    <div class="veh-toggle">
+      <div class="vbtn active" id="vbtn-4W" onclick="setVeh('4W')">
+        <span class="vbtn-ico">&#128663;</span>
+        <div class="vbtn-lbl">4-Wheeler</div>
+        <div class="vbtn-sub">Max 84 months | Margin: auto 10%</div>
+      </div>
+      <div class="vbtn" id="vbtn-2W" onclick="setVeh('2W')">
+        <span class="vbtn-ico">&#127949;</span>
+        <div class="vbtn-lbl">2-Wheeler</div>
+        <div class="vbtn-sub">Max 36 months | Max Rs.10L | Margin: auto 25%</div>
+      </div>
+    </div>
+    <div class="slbl">Vehicle Cost Details</div>
+    <div class="fg">
+      <div class="fld">
+        <label>On-Road Price (Rs.)</label>
+        <div class="inp-wrap has-pre"><span class="inp-pre">&#8377;</span>
+          <input type="number" id="onRoadPrice" value="800000" step="10000" oninput="calc()">
+        </div>
+        <span class="hint">Incl. registration, accessories, insurance, road tax. TCS &amp; extended warranty excluded.</span>
+      </div>
+      <div class="fld" style="justify-content:center">
+        <label>Margin Applied (Auto)</label>
+        <div style="height:40px;background:rgba(36,113,163,0.07);border:1.5px solid rgba(36,113,163,0.2);border-radius:var(--r);display:flex;align-items:center;padding:0 12px;font-size:13px;font-weight:600;color:var(--navy)" id="marginInfoBox">
+          4W: 10% of on-road price
+        </div>
+        <span class="hint" id="marginInfoHint">Changes automatically with vehicle type &amp; security</span>
+      </div>
+    </div>
+    <div class="fg" style="margin-top:12px">
+      <div class="fld">
+        <label>Electric / Hybrid Vehicle?</label>
+        <select id="isEV" onchange="calc()">
+          <option value="no">No (Fuel-based)</option>
+          <option value="yes">Yes (Electric / Hybrid)</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Security Type</label>
+        <select id="secType" onchange="calc()">
+          <option value="normal">Normal (Hypothecation)</option>
+          <option value="td100">100% Term Deposit Cover</option>
+          <option value="neglien">Negative Lien on Mortgaged Property</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:1rem">
+      <div class="slbl">Rate of Interest — Festive Vibes 2.0 (Circular 316)</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Campaign period: 15 Dec 2025 – 15 Mar 2026. Max concession 0.60%. Lowest ROI: 7.75% (100% TD). Existing concessions (EV, Negative Lien, Govt) continue to apply.</div>
+      <div class="roi-grid" id="roi-grid"></div>
+    </div>
+  </div>
+</div>
+<div class="step-pane" id="sp1">
+  <div id="appl-container"></div>
+  <button class="add-btn" onclick="addApplicant()">+ Add Co-Applicant (max 3 total)</button>
+</div>
+<button class="calc-btn" onclick="calc();goStep(0);window.scrollTo({top:0,behavior:'smooth'})">
+  Check Maximum Loan Eligibility &nbsp;&#8594;
+</button>
+</div>
+<div class="res-panel">
+  <div class="res-hero">
+    <div class="res-lbl">Maximum Eligible Loan</div>
+    <div class="res-amt" id="r-amt">&#8377; &#8212;</div>
+    <div class="res-sub" id="r-sub">Fill details and calculate</div>
+    <div id="r-badge"></div>
+  </div>
+  <div class="mg">
+    <div class="mc"><div class="ml">Monthly EMI</div><div class="mv" id="r-emi">&#8212;</div><div class="ms" id="r-emi-s">&#8212;</div></div>
+    <div class="mc"><div class="ml">Interest Rate</div><div class="mv" id="r-roi">&#8212;</div><div class="ms">p.a.</div></div>
+    <div class="mc"><div class="ml">Total Interest</div><div class="mv" id="r-int">&#8212;</div><div class="ms" id="r-int-s">&#8212;</div></div>
+    <div class="mc"><div class="ml">Tenure</div><div class="mv" id="r-term">&#8212;</div><div class="ms" id="r-term-s">&#8212;</div></div>
+  </div>
+  <div id="alerts-zone"></div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 1 — Repayment Tenure</div>
+    <div class="bt">
+      <div class="btr"><span class="bl">Vehicle type max tenure</span><span class="bv" id="t-veh">&#8212;</span></div>
+      <div class="btr"><span class="bl" id="t-age-lbl">Age-based (salaried max 60yr, others max 70yr)</span><span class="bv" id="t-age-val">&#8212;</span></div>
+      <div class="btr hi"><span class="bl">Effective tenure = min of above</span><span class="bv" id="t-final">&#8212;</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 2 — Income Assessment</div>
+    <div id="appl-income-detail"></div>
+    <div class="bt" style="margin-top:8px;border-top:1.5px solid var(--paper3);padding-top:8px">
+      <div class="btr"><span class="bl">A. Total Gross Annual Income</span><span class="bv" id="b-A">&#8212;</span></div>
+      <div class="btr"><span class="bl">B. Total Annual Tax Paid</span><span class="bv" id="b-B">&#8212;</span></div>
+      <div class="btr hi"><span class="bl">C. Net Income (A &#8722; B)</span><span class="bv" id="b-C">&#8212;</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 3 — Sustenance &amp; Max EMI</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Sustenance = Sustenance% &#215; Gross Income &nbsp;|&nbsp; G = (C &#8722; D &#8722; E &#8722; F) &#247; 12</div>
+    <div class="bt">
+      <div class="btr"><span class="bl" id="b-sus-lbl">F. Sustenance</span><span class="bv" id="b-F">&#8212;</span></div>
+      <div class="btr"><span class="bl">D. Existing EMIs (CIBIL)</span><span class="bv" id="b-D">&#8212;</span></div>
+      <div class="btr"><span class="bl">E. Monthly deductions</span><span class="bv" id="b-E">&#8212;</span></div>
+      <div class="btr" style="background:var(--paper);padding:6px 8px;border-radius:6px;margin:4px 0">
+        <span class="bl" style="font-size:11px;color:var(--ink3)">G = (C &#8722; D&#215;12 &#8722; E&#215;12 &#8722; F) &#247; 12</span>
+        <span class="bv" style="font-size:11px" id="b-G-working">&#8212;</span>
+      </div>
+      <div class="btr hi"><span class="bl">G. Max Monthly EMI Allowed</span><span class="bv" id="b-G">&#8212;</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 4 — Loan by Repayment Capacity (H)</div>
+    <div class="bt">
+      <div class="btr"><span class="bl">Max monthly EMI (G)</span><span class="bv" id="h-G">&#8212;</span></div>
+      <div class="btr"><span class="bl">Monthly rate (r)</span><span class="bv" id="h-r">&#8212;</span></div>
+      <div class="btr"><span class="bl">No. of instalments (n)</span><span class="bv" id="h-n">&#8212;</span></div>
+      <div class="btr" style="background:var(--paper);padding:6px 8px;border-radius:6px;margin:4px 0">
+        <span class="bl" style="font-size:11px;color:var(--ink3)">H = G &#215; [(1+r)&#8319;&#8722;1] &#247; [r&#215;(1+r)&#8319;]</span>
+        <span class="bv" style="font-size:11px" id="h-formula">&#8212;</span>
+      </div>
+      <div class="btr hi"><span class="bl">H. Loan by repayment capacity</span><span class="bv" id="b-H">&#8212;</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 5 — Loan by Vehicle Cost (I)</div>
+    <div class="bt">
+      <div class="btr"><span class="bl">On-road price</span><span class="bv" id="v-price">&#8212;</span></div>
+      <div class="btr"><span class="bl" id="v-margin-lbl">Margin (10%)</span><span class="bv" id="v-margin">&#8212;</span></div>
+      <div class="btr hi"><span class="bl">I. Loan = On-road &#8722; Margin</span><span class="bv" id="b-I">&#8212;</span></div>
+    </div>
+  </div>
+  <div class="card" id="step6-2w-card" style="display:none">
+    <div class="card-hd"><span class="dot"></span>Step 6 — 2-Wheeler Scheme Cap (J)</div>
+    <div class="bt">
+      <div class="btr"><span class="bl">2-Wheeler maximum loan</span><span class="bv">&#8377;10,00,000</span></div>
+      <div class="btr hi"><span class="bl">J. Scheme cap applied</span><span class="bv" id="b-J">&#8377;10,00,000</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 6 — Maximum Eligible Loan</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">Eligible = min(H, I<span id="j-note"></span>) &#8212; no upper cap for 4-wheelers</div>
+    <div class="bt">
+      <div class="btr"><span class="bl">H. By repayment capacity</span><span class="bv" id="fin-H">&#8212;</span></div>
+      <div class="btr"><span class="bl">I. By vehicle cost (after margin)</span><span class="bv" id="fin-I">&#8212;</span></div>
+      <div class="btr" id="fin-J-row" style="display:none"><span class="bl">J. 2-Wheeler scheme cap</span><span class="bv" id="fin-J">&#8377;10,00,000</span></div>
+      <div class="btr"><span class="bl">Limiting factor</span><span class="bv" id="fin-limit">&#8212;</span></div>
+      <div class="btr hi"><span class="bl">Maximum Eligible Loan</span><span class="bv" id="b-fin">&#8212;</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="dot"></span>Step 7 — EMI Calculation</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:8px">EMI = P &#215; r &#215; (1+r)&#8319; &#247; [(1+r)&#8319; &#8722; 1]</div>
+    <div class="bt">
+      <div class="btr"><span class="bl">Principal (P)</span><span class="bv" id="emi-P">&#8212;</span></div>
+      <div class="btr"><span class="bl">Monthly rate (r)</span><span class="bv" id="emi-r">&#8212;</span></div>
+      <div class="btr"><span class="bl">No. of instalments (n)</span><span class="bv" id="emi-n">&#8212;</span></div>
+      <div class="btr hi"><span class="bl">Monthly EMI</span><span class="bv" id="emi-val">&#8212;</span></div>
+      <div class="btr"><span class="bl">Total payable (EMI &#215; n)</span><span class="bv" id="emi-total">&#8212;</span></div>
+      <div class="btr"><span class="bl">Total interest outgo</span><span class="bv" id="emi-int">&#8212;</span></div>
+      <div class="btr"><span class="bl" id="fee-lbl">Processing fee (0.5%, max Rs.5K + GST)</span><span class="bv" id="emi-fee">&#8212;</span></div>
+    </div>
+  </div>
+</div>
+</div></div>
+<footer style="text-align:center;padding:1.5rem;font-size:11px;color:var(--ink3);border-top:1px solid var(--paper3);margin-top:1rem">This calculator is indicative only. Final sanction subject to bank's discretion and full compliance.</footer>
+<script>
+let vehType='4W';let applicants=[];let applIdSeed=0;
+const $=id=>document.getElementById(id);
+const gv=id=>{const v=parseFloat($(id).value);return isNaN(v)?0:v;};
+function fmt(n){return '\u20B9'+Math.round(n).toLocaleString('en-IN');}
+function fmtExact(n){if(n<=0)return '\u20B90.00';return '\u20B9'+Math.floor(n).toLocaleString('en-IN')+'.'+String(Math.round((n%1)*100)).padStart(2,'0');}
+function fmtK(n){if(n>=10000000)return '\u20B9'+(n/10000000).toFixed(2)+' Cr';if(n>=100000)return '\u20B9'+(n/100000).toFixed(2)+' L';return fmt(n);}
+function parseDMY(str){if(!str)return null;const clean=str.trim().replace(/\//g,'-');const parts=clean.split('-');if(parts.length!==3)return null;const d=parseInt(parts[0],10),m=parseInt(parts[1],10),y=parseInt(parts[2],10);if(isNaN(d)||isNaN(m)||isNaN(y)||m<1||m>12||d<1||d>31||y<1900||y>2100)return null;return new Date(y,m-1,d);}
+function isValidDMY(s){return parseDMY(s)!==null;}
+function calcAge(dob){if(!dob)return null;const birth=parseDMY(dob);if(!birth||isNaN(birth.getTime()))return null;const today=new Date();if(birth>today)return null;let yrs=today.getFullYear()-birth.getFullYear();let mo=today.getMonth()-birth.getMonth();let days=today.getDate()-birth.getDate();if(mo<0){yrs--;mo+=12;}if(days>0)mo+=1;if(mo>=12){yrs++;mo=0;}const totalMo=yrs*12+mo;return{yrs,mo,totalMo,display:yrs+' yrs '+mo+' mo'};}
+function normDOB(input){let v=input.value.trim();if(!v)return;const digits=v.replace(/[-\/\s]/g,'');if(digits.length===8)input.value=digits.slice(0,2)+'-'+digits.slice(2,4)+'-'+digits.slice(4,8);}
+function sustenancePct(annualGross,cibilGood){
+  // Per Circular 55 Section 11 — sustenance % of GROSS income
+  // Two columns: CIBIL<700 / -1 / 1-5 / NTC  |  CIBIL >= 700
+  if(annualGross<=300000)  return cibilGood ? 0.35 : 0.40;
+  if(annualGross<=600000)  return 0.35; // both same
+  if(annualGross<=1200000) return 0.30; // both same
+  if(annualGross<=1800000) return cibilGood ? 0.25 : 0.30;
+  return cibilGood ? 0.20 : 0.25;
+}
+function getROI(cibil, vehType, borrowerCat, isEV, secType){
+  // ── 100% Term Deposit: flat 7.75%, NO additional concessions (Circ 269 Mod1 + Circ316 Note3) ──
+  if(secType === 'td100') return 7.75;
+
+  // ── Base ROI — Circular 316 Festive Vibes 2.0 campaign rates ──
+  // NTC = -1. NTC for 4W treated same as 700-730 bracket (per doc: "including NTC customers having -1/1 to 5/100 to 200")
+  let base;
+  const isNTC = (cibil === -1);
+  if(vehType === '4W'){
+    if(cibil >= 731)             base = 8.75;
+    else if(cibil >= 700 || isNTC) base = 8.95;  // 700-730 AND NTC
+    else if(cibil >= 650)        base = 9.25;
+    else                         base = 9.50;  // below 650 = "Others"
+  } else {
+    // 2-Wheeler: >=700 (incl NTC) = 10.75%, <700 & Others = 11.75%
+    if(cibil >= 700 || isNTC)    base = 10.75;
+    else                         base = 11.75;
+  }
+
+  // ── Concessions — Circular 55 Section 9 + Circular 269 Mod2/4 (continue to apply) ──
+  let concession = 0;
+  if(borrowerCat === 'govt')  concession += 0.25; // Govt/PSU/Pensioner (Circ55 + Circ269 Mod4)
+  if(isEV === 'yes')          concession += 0.10; // Electric/Hybrid (Circ55 Section 9)
+  if(secType === 'neglien')   concession += 0.50; // Negative lien on mortgaged property (Circ269 Mod2)
+
+  // Circular 316 Note1: Maximum total concession = 0.60%
+  concession = Math.min(concession, 0.60);
+
+  // Circular 316 Note2: Lowest ROI = 7.75% (for 100% TD only — handled above)
+  // For other cases no explicit floor stated, but practically ≥ base - 0.60
+  return +(base - concession).toFixed(2);
+}
+
+function buildROIGrid(){
+  const ev  = $('isEV').value;
+  const sec = $('secType').value;
+  const grid = $('roi-grid');
+  const cat = applicants.some(a => a.prof==='salaried' && a.borrowerCat==='govt') ? 'govt' : 'private';
+
+  // Derive lowest CIBIL from income-contributing applicants
+  const incCibils = applicants.map(a => {
+    const inc = computeApplicantIncome(a);
+    return inc.gross > 0 ? (parseInt(a.cibil) || 750) : null;
+  }).filter(c => c !== null);
+  const cibil = incCibils.length > 0 ? Math.min(...incCibils) : 750;
+
+  if(sec === 'td100'){
+    grid.innerHTML = '<div class="roi-b active" style="border-color:var(--navy3)"><span class="rs">All CIBIL scores \u2014 100% Term Deposit (no extra concessions)</span><span class="rv">7.75% <span style="font-size:10px;font-weight:400;color:var(--ink3)">(Festive Vibes 2.0)</span></span></div>';
+    return;
+  }
+
+  // Build bracket list — 4W and 2W have different brackets per Circular 316
+  const brackets = vehType === '4W' ? [
+    { label: 'CIBIL \u2265 731',                               testActive: c => c >= 731 },
+    { label: 'CIBIL 700\u2013730 (incl. NTC \u20111/1\u20115)',testActive: c => (c >= 700 && c <= 730) || c === -1 },
+    { label: 'CIBIL 650\u2013699',                             testActive: c => c >= 650 && c <= 699 },
+    { label: 'Others (below 650)',                             testActive: c => c > 0 && c < 650 }
+  ] : [
+    { label: 'CIBIL \u2265 700 (incl. NTC)',                   testActive: c => c >= 700 || c === -1 },
+    { label: 'CIBIL < 700 & Others',                           testActive: c => c > 0 && c < 700 }
+  ];
+
+  // Use representative CIBIL values for each bracket to compute ROI
+  const repCibil = vehType === '4W' ? [800, 715, 670, 600] : [750, 600];
+
+  grid.innerHTML = brackets.map((b, i) => {
+    const roi = getROI(repCibil[i], vehType, cat, ev, sec);
+    const active = b.testActive(cibil) ? 'active' : '';
+    return `<div class="roi-b ${active}">
+      <span class="rs">${b.label}</span>
+      <span class="rv">${roi.toFixed(2)}%
+        <span style="font-size:10px;color:var(--ink3);font-weight:400;margin-left:6px">(Festive Vibes 2.0)</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+function setVeh(v){
+  vehType=v;$('vbtn-4W').classList.toggle('active',v==='4W');$('vbtn-2W').classList.toggle('active',v==='2W');
+  $('step6-2w-card').style.display=v==='2W'?'':'none';$('fin-J-row').style.display=v==='2W'?'':'none';
+  $('j-note').textContent=v==='2W'?', J (Rs.10L cap)':'';
+  buildROIGrid();calc();
+}
+function goStep(n){document.querySelectorAll('.step-pane').forEach((p,i)=>p.classList.toggle('active',i===n));document.querySelectorAll('.step-btn').forEach((b,i)=>b.classList.toggle('active',i===n));}
+function addApplicant(isFirst=false){
+  if(applicants.length>=3){alert('Maximum 3 applicants (1 main + 2 co-applicants).');return;}
+  const id=++applIdSeed;
+  applicants.push({id,name:'',dob:'',prof:'salaried',grossSalary:'',ay1g:'',ay2g:'',ay1t:'',ay2t:'',agriIncome:'',existingEmi:'',otherOutgoes:'',borrowerCat:'private',cibil:'750',isMain:isFirst});
+  renderApplicants();
+}
+function removeApplicant(id){applicants=applicants.filter(a=>a.id!==id);renderApplicants();calc();}
+function updAppl(id,field,val){const a=applicants.find(x=>x.id===id);if(a)a[field]=val;}
+function syncFromDOM(){
+  applicants.forEach(a=>{
+    const r=id=>{const el=document.getElementById(id);return el?el.value:'';};
+    a.name=r('vn-'+a.id);a.dob=r('vdob-'+a.id);a.existingEmi=r('vemi-'+a.id);a.otherOutgoes=r('vout-'+a.id);a.cibil=r('vcibil-'+a.id)||'750';
+    if(a.prof==='salaried'){a.grossSalary=r('vsal-'+a.id);a.borrowerCat=r('vcat-'+a.id)||'private';}
+    else if(a.prof==='business'){a.ay1g=r('vay1g-'+a.id);a.ay2g=r('vay2g-'+a.id);a.ay1t=r('vay1t-'+a.id);a.ay2t=r('vay2t-'+a.id);}
+    else{a.agriIncome=r('vagri-'+a.id);}
+  });
+}
+function profLabel(p){return p==='salaried'?'Salaried':p==='business'?'Business/Self-Employed':'Agriculture';}
+function renderApplicants(){
+  const con=$('appl-container');con.innerHTML='';
+  applicants.forEach((a,idx)=>{
+    const div=document.createElement('div');div.className='appl-block';div.id='vab-'+a.id;
+    div.innerHTML=applHTML(a,idx);con.appendChild(div);
+    ['salaried','business','agriculture'].forEach(p=>{
+      const btn=document.getElementById('vpt-'+a.id+'-'+p);
+      if(btn)btn.onclick=()=>{a.prof=p;renderApplicants();calc();};
+    });
+  });
+}
+function applHTML(a,idx){
+  const isPrimary=idx===0;
+  const ageInfo=(a.dob&&isValidDMY(a.dob))?calcAge(a.dob):null;
+  const ageStr=ageInfo?'<span style="font-size:11px;color:#2471a3;margin-left:6px">'+ageInfo.display+'</span>':'';
+  const liabE = a.prof==='salaried'
+    ? '<div class="fld"><label>Monthly Salary Deductions (E)</label><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vout-'+a.id+'" value="'+a.otherOutgoes+'" step="500" oninput="updAppl('+a.id+',\'otherOutgoes\',this.value);calc()"></div><span class="hint">PF, LIC, professional tax</span></div>'
+    : '<div class="fld" style="display:flex;align-items:center"><span style="font-size:11px;color:#2471a3;line-height:1.5"><b>Tax:</b> Average of 2 AYs used.</span></div>';
+  const incFields=a.prof==='salaried'?vSalFields(a):a.prof==='business'?vBizFields(a):vAgriFields(a);
+  return '<div class="appl-hdr"><div style="display:flex;align-items:center;gap:10px"><div class="appl-num">'+(idx+1)+'</div><div><div class="appl-title">'+(isPrimary?'Primary Applicant':'Co-Applicant '+idx)+ageStr+'</div>'+(a.name?'<div style="font-size:12px;color:var(--ink3)">'+a.name+'</div>':'')+'</div></div>'+(!isPrimary?'<button class="del-btn" onclick="removeApplicant('+a.id+')">Remove</button>':'')+'</div>'+
+    '<div class="fg" style="margin-bottom:1rem"><div class="fld"><label>Full Name</label><input type="text" id="vn-'+a.id+'" value="'+a.name+'" oninput="updAppl('+a.id+',\'name\',this.value)"></div>'+
+    '<div class="fld"><label>Date of Birth (DD-MM-YYYY)</label><input type="text" id="vdob-'+a.id+'" value="'+a.dob+'" maxlength="10" placeholder="e.g. 15-06-1985" style="letter-spacing:.06em" onblur="normDOB(this);updAppl('+a.id+',\'dob\',this.value);renderApplicants();calc()">'+(ageInfo?'<span class="hint" style="color:#2471a3">Age: '+ageInfo.yrs+' yrs '+ageInfo.mo+' mo ('+ageInfo.totalMo+' months)</span>':'<span class="hint">Age auto-calculated on blur</span>')+'</div></div>'+
+    '<div class="fg" style="margin-bottom:1rem"><div class="fld"><label>CIBIL Score</label><input type="number" id="vcibil-'+a.id+'" value="'+(a.cibil||'750')+'" min="-1" max="900" oninput="updAppl('+a.id+',\'cibil\',this.value);calc()"><span class="hint">Min 650. New-to-credit = -1</span></div></div>'+
+    '<div class="slbl">Profession</div><div class="prof-tabs" style="margin-bottom:1rem">'+
+    '<div class="ptab '+(a.prof==='salaried'?'active':'')+'" id="vpt-'+a.id+'-salaried"><span class="ptab-ico">\uD83D\uDC54</span><div class="ptab-lbl">Salaried</div><div class="ptab-sub">Salary/Pension</div></div>'+
+    '<div class="ptab '+(a.prof==='business'?'active':'')+'" id="vpt-'+a.id+'-business"><span class="ptab-ico">\uD83C\uDFE2</span><div class="ptab-lbl">Business/Firm</div><div class="ptab-sub">2yr ITR avg</div></div>'+
+    '<div class="ptab '+(a.prof==='agriculture'?'active':'')+'" id="vpt-'+a.id+'-agriculture"><span class="ptab-ico">\uD83C\uDF3E</span><div class="ptab-lbl">Agriculture</div><div class="ptab-sub">Tahsildar Cert</div></div></div>'+
+    incFields+
+    '<hr class="div" style="margin-top:1rem"><div class="slbl">'+(a.prof==='salaried'?'Category & Liabilities':'Liabilities')+'</div><div class="fg">'+
+    (a.prof==='salaried'?'<div class="fld"><label>Borrower Category</label><select id="vcat-'+a.id+'" onchange="updAppl('+a.id+',\'borrowerCat\',this.value);calc()"><option value="private"'+(a.borrowerCat==='private'?' selected':'')+'>Private Employee</option><option value="govt"'+(a.borrowerCat==='govt'?' selected':'')+'>Govt / PSU Employee / Pensioner</option></select><span class="hint">Govt/PSU: \u22120.25% ROI concession</span></div>':'')+
+    '<div class="fld"><label>Existing EMIs / month (D) as per CIBIL</label><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vemi-'+a.id+'" value="'+a.existingEmi+'" step="500" oninput="updAppl('+a.id+',\'existingEmi\',this.value);calc()"></div></div>'+
+    liabE+'</div>';
+}
+function vSalFields(a){
+  return '<div class="slbl">Salaried Income</div><div class="fg">' +
+    '<div class="fld"><label>Last Month Gross Salary</label><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vsal-'+a.id+'" value="'+a.grossSalary+'" step="1000" oninput="updAppl('+a.id+',\'grossSalary\',this.value);calc()"></div><span class="hint">Annualised \xd712</span></div>' +
+    '</div>';
+}
+function vBizFields(a){const ayGrid='display:grid;grid-template-columns:100px 1fr 1fr;gap:8px;margin-bottom:8px;align-items:center';return '<div class="slbl">Business Income (Average of 2 AYs)</div><div style="margin-bottom:10px"><div style="'+ayGrid.replace('margin-bottom:8px','margin-bottom:6px')+';font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.04em"><div>AY</div><div>Gross Income (\u20B9)</div><div>Income Tax (\u20B9)</div></div><div style="'+ayGrid+'"><div class="ay-lbl">AY 2025-26</div><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vay1g-'+a.id+'" value="'+a.ay1g+'" step="10000" oninput="updAppl('+a.id+',\'ay1g\',this.value);calc()"></div><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vay1t-'+a.id+'" value="'+(a.ay1t||'')+'" step="5000" oninput="updAppl('+a.id+',\'ay1t\',this.value);calc()"></div></div><div style="'+ayGrid+'"><div class="ay-lbl">AY 2024-25</div><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vay2g-'+a.id+'" value="'+a.ay2g+'" step="10000" oninput="updAppl('+a.id+',\'ay2g\',this.value);calc()"></div><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vay2t-'+a.id+'" value="'+(a.ay2t||'')+'" step="5000" oninput="updAppl('+a.id+',\'ay2t\',this.value);calc()"></div></div><div style="font-size:11px;color:#2471a3;margin-top:6px;padding:6px 10px;background:rgba(36,113,163,0.06);border-radius:6px">Average of both AYs used for gross income and tax.</div></div>';}
+function vAgriFields(a){return '<div class="slbl">Agriculture Income</div><div class="fg"><div class="fld"><label>Annual Income (Tahsildar / Form-J)</label><div class="inp-wrap has-pre"><span class="inp-pre">\u20B9</span><input type="number" id="vagri-'+a.id+'" value="'+a.agriIncome+'" step="10000" oninput="updAppl('+a.id+',\'agriIncome\',this.value);calc()"></div><span class="hint">Min Rs.3L/yr for 4-Wheeler eligibility</span></div></div>';}
+function computeApplicantIncome(a){
+  if(a.prof==='salaried'){const sal=parseFloat(a.grossSalary)||0;return{gross:sal*12,tax:0};}
+  else if(a.prof==='business'){const g1=parseFloat(a.ay1g)||0,g2=parseFloat(a.ay2g)||0;const t1=parseFloat(a.ay1t)||0,t2=parseFloat(a.ay2t)||0;const cnt=[g1,g2].filter(v=>v>0).length||1;return{gross:(g1+g2)/cnt,tax:(t1+t2)/cnt};}
+  else{return{gross:parseFloat(a.agriIncome)||0,tax:0};}
+}
+function calc(){
+  syncFromDOM();if(applicants.length===0)return;
+  const onRoad=gv('onRoadPrice');
+  const isEV=$('isEV').value;const secType=$('secType').value;
+
+  // Borrower category: only salaried applicants can be Govt/PSU — business/agri don't have this field
+  const borrowerCat = applicants.some(a => a.prof==='salaried' && a.borrowerCat==='govt') ? 'govt' : 'private';
+
+  // ── MARGIN RULES ──────────────────────────────────────────────
+  const isTD = secType==='td100';
+  const marginPctVal = isTD ? 0 : (vehType==='2W' ? 25 : 10);
+  const marginLabel  = isTD ? 'Nil (100% Term Deposit)' : (vehType==='2W'?'25% of on-road (2W)':'10% of on-road (4W)');
+  const mBox=$('marginInfoBox');
+  if(mBox){if(isTD){mBox.textContent='Nil \u2014 100% Term Deposit';mBox.style.color='var(--green)';}else if(vehType==='2W'){mBox.textContent='Auto: 25% of on-road price';mBox.style.color='var(--navy)';}else{mBox.textContent='Auto: 10% of on-road price';mBox.style.color='var(--navy)';}}
+
+  // ── CIBIL: lowest among income-contributing applicants (Section 9) ──
+  const incomeApplCibils = applicants.map(a=>{
+    const inc=computeApplicantIncome(a);
+    return inc.gross>0 ? (parseInt(a.cibil)||750) : null;
+  }).filter(c=>c!==null);
+  const cibil = incomeApplCibils.length>0 ? Math.min(...incomeApplCibils) : 750;
+
+  buildROIGrid();
+  const issues=[],warns=[];
+
+  // CIBIL validations per applicant
+  applicants.forEach((a,idx)=>{
+    const c=parseInt(a.cibil)||0;
+    const inc=computeApplicantIncome(a);
+    if(inc.gross>0 && c>0 && c<650)
+      issues.push((a.name||'Applicant '+(idx+1))+': CIBIL '+c+' is below minimum 650. New-to-credit: enter -1.');
+  });
+
+  const roi=getROI(cibil,vehType,borrowerCat,isEV,secType);
+  const r=roi/12/100;
+  const maxTenByVeh=vehType==='4W'?84:36;
+
+  // ── PER-APPLICANT CALCULATION (Section 12.1 + 12.3) ──────────
+  // Each applicant gets their own tenure (based on their age) and their own H (eligible loan).
+  // Total H = sum of all individual H values.
+  let incHTML='';
+  let totalGross=0,totalTax=0,totalDmo=0,totalEmo=0,totalSusAnn=0;
+  let sumH=0; // sum of per-applicant eligible H
+  const applResults=[];
+
+  applicants.forEach((a,idx)=>{
+    const inc=computeApplicantIncome(a);
+    totalGross+=inc.gross; totalTax+=inc.tax;
+    const D=parseFloat(a.existingEmi)||0;
+    const E=parseFloat(a.otherOutgoes)||0;
+    totalDmo+=D; totalEmo+=E;
+    const netP=Math.max(0,inc.gross-inc.tax);
+    const cibilGoodA=(parseInt(a.cibil)||750)>=700||(parseInt(a.cibil)===-1);
+    const susF=inc.gross*sustenancePct(inc.gross,cibilGoodA); // on gross per Section 11
+    totalSusAnn+=susF;
+    const availAnnual=Math.max(0,netP-D*12-E*12-susF);
+    const gPerAppl=availAnnual/12; // max EMI for this applicant
+
+    // Age/tenure for this applicant (Section 3d: salaried+private→60, salaried+govt OR non-salaried→70)
+    let applH=0, applTenMo=maxTenByVeh, applTenLabel='scheme max';
+    if(a.dob&&isValidDMY(a.dob)){
+      const age=calcAge(a.dob);
+      if(age){
+        if(age.yrs<18) issues.push((a.name||'Applicant '+(idx+1))+': Minimum age is 18 years.');
+        // Salaried private → cap 60yr; Salaried Govt/PSU → cap 70yr (pension income considered); Business/Agri → cap 70yr
+        const maxAgeYrs = (a.prof==='salaried' && a.borrowerCat!=='govt') ? 60 : 70;
+        const moToMax=Math.max(0,maxAgeYrs*12-age.totalMo);
+        applTenMo=Math.min(maxTenByVeh, moToMax);
+        applTenLabel=applTenMo===maxTenByVeh?'scheme max':maxAgeYrs+'yr age limit';
+        if(moToMax<=0) issues.push((a.name||'Applicant '+(idx+1))+': Has reached maximum age — not eligible.');
+      }
+    }
+    if(applTenMo>0 && gPerAppl>0 && r>0){
+      const pow=Math.pow(1+r,applTenMo);
+      applH=gPerAppl*(pow-1)/(r*pow);
+    }
+    sumH+=applH;
+
+    const name=a.name||(idx===0?'Primary Applicant':'Co-Applicant '+idx);
+    const nYrsA=Math.floor(applTenMo/12),nMoA=applTenMo%12;
+    let note='';
+    if(a.prof==='salaried'){const sal=parseFloat(a.grossSalary)||0;note='Gross = '+fmt(sal)+'/mo \xd712 = '+fmt(sal*12)+'/yr | Tax = \u20B90';}
+    else if(a.prof==='business'){const g1=parseFloat(a.ay1g)||0,g2=parseFloat(a.ay2g)||0;note='AY 25-26: '+fmt(g1)+' | AY 24-25: '+fmt(g2)+' \u2192 Avg Gross = '+fmt(Math.round(inc.gross))+'/yr | Tax = '+fmt(Math.round(inc.tax))+'/yr';}
+    else{note='Tahsildar cert = '+fmt(Math.round(inc.gross))+'/yr | Tax = \u20B90 (exempt)';}
+    const catBadge='<span style="background:'+(a.borrowerCat==='govt'?'#e8f5ee;color:#1b5e38':'#e8f0fb;color:#1a4a7a')+'";padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px">'+(a.borrowerCat==='govt'?'Govt/PSU':'Private')+'</span>';
+    const cibilBadge='<span style="background:'+(parseInt(a.cibil)>=700?'#e8f5ee;color:#1b5e38':parseInt(a.cibil)>=650?'#fef3dc;color:#7a4500':'#fde8e8;color:#8c1c0e')+'";padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-left:4px">CIBIL: '+(a.cibil||'—')+'</span>';
+    applResults.push({name,applTenMo,applTenLabel,gPerAppl,applH,nYrsA,nMoA});
+    incHTML+='<div style="border:1px solid var(--paper3);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">'+
+        '<div style="font-weight:600;color:var(--navy)">'+name+' \u2014 '+profLabel(a.prof)+catBadge+cibilBadge+'</div>'+
+        '<div style="font-size:11px;color:var(--ink3)">Tenure: '+(nYrsA>0?nYrsA+'y ':'')+nMoA+'m ('+applTenMo+' mo) ['+applTenLabel+']</div>'+
+      '</div>'+
+      '<div style="color:var(--ink3);font-size:11px;line-height:1.6">'+note+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:6px;background:var(--paper);padding:6px;border-radius:6px">'+
+        '<div><div style="color:var(--ink3);font-size:10px">Gross (A)</div><div style="font-weight:700;font-size:12px">'+fmt(Math.round(inc.gross))+'/yr</div></div>'+
+        '<div><div style="color:var(--ink3);font-size:10px">Tax (B)</div><div style="font-weight:700;font-size:12px">'+fmt(Math.round(inc.tax))+'/yr</div></div>'+
+        '<div><div style="color:var(--ink3);font-size:10px">Net C=A\u2212B</div><div style="font-weight:700;font-size:12px;color:var(--navy)">'+fmt(Math.round(netP))+'/yr</div></div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--ink3);margin-top:5px;line-height:1.6">'+
+        'Sustenance: '+(sustenancePct(inc.gross,cibilGoodA)*100).toFixed(0)+'% \xd7 Gross '+fmt(Math.round(inc.gross))+' = '+fmt(Math.round(susF/12))+'/mo | '+
+        'D (CIBIL EMI): '+fmt(D)+'/mo | E: '+fmt(E)+'/mo<br>'+
+        '<b style="color:var(--navy)">Available EMI: '+fmt(Math.round(gPerAppl))+'/mo \u2192 Eligible H = '+fmtExact(applH)+'</b>'+
+      '</div></div>';
+  });
+
+  $('appl-income-detail').innerHTML=incHTML;
+  const netIncome=Math.max(0,totalGross-totalTax);
+  $('b-A').textContent=fmt(Math.round(totalGross))+' /yr';
+  $('b-B').textContent=fmt(Math.round(totalTax))+' /yr';
+  $('b-C').textContent=fmt(Math.round(netIncome))+' /yr';
+  const totalAvail=applicants.reduce((s,a)=>{
+    const inc=computeApplicantIncome(a);const netP=Math.max(0,inc.gross-inc.tax);
+    const D=parseFloat(a.existingEmi)||0;const E=parseFloat(a.otherOutgoes)||0;
+    const cibilGoodA=(parseInt(a.cibil)||750)>=700||(parseInt(a.cibil)===-1);
+    const susF=inc.gross*sustenancePct(inc.gross,cibilGoodA);
+    return s+Math.max(0,netP-D*12-E*12-susF);
+  },0);
+  const maxEmiMo=totalAvail/12;
+  $('b-sus-lbl').textContent='F. Sustenance (per-applicant, on Gross income, CIBIL-based slab)';
+  $('b-F').textContent=fmt(Math.round(totalSusAnn/12))+' /mo total';
+  $('b-D').textContent=fmt(Math.round(totalDmo))+' /mo';
+  $('b-E').textContent=fmt(Math.round(totalEmo))+' /mo';
+  $('b-G-working').textContent='Sum of per-applicant available EMI';
+  $('b-G').textContent=fmtExact(maxEmiMo)+' /mo combined';
+
+  // H = Sum of per-applicant eligible loans (Section 12.3)
+  const loanH=sumH;
+  const sumTenDisplay=applResults.map(ar=>(ar.name||'Appl')+': '+(ar.nYrsA>0?ar.nYrsA+'y ':'')+ar.nMoA+'m').join(', ');
+  $('h-G').textContent=fmtExact(maxEmiMo)+' /mo (combined)';
+  $('h-r').textContent=roi.toFixed(2)+'% \xf7 12 = '+(r*100).toFixed(6)+'% /mo [Lowest CIBIL: '+cibil+']';
+  $('h-n').textContent='Per applicant: '+sumTenDisplay;
+  $('h-formula').textContent='Sum of H per applicant = '+applResults.map(ar=>fmtExact(ar.applH)).join(' + ')+' = '+fmtExact(loanH);
+  $('b-H').textContent=fmtExact(loanH);
+
+  // Agri 4W minimum income check
+  if(vehType==='4W'){
+    applicants.forEach((a,idx)=>{
+      if(a.prof==='agriculture'){
+        const agri=parseFloat(a.agriIncome)||0;
+        if(agri>0&&agri<300000) warns.push((a.name||'Applicant '+(idx+1))+': Agriculture income below minimum Rs.3L/yr required for 4-Wheeler loan.');
+      }
+    });
+  }
+  // Update tenure step display (show per-applicant tenures)
+  $('t-veh').textContent=vehType==='4W'?'4-Wheeler: max 84 months (7 yrs)':'2-Wheeler: max 36 months (3 yrs)';
+  $('t-age-lbl').textContent='Per-applicant (salaried private\u219260yr, salaried Govt/PSU & others\u219270yr)';
+  $('t-age-val').textContent=applResults.length?applResults.map(ar=>ar.name+': '+(ar.nYrsA>0?ar.nYrsA+'y ':'')+ar.nMoA+'m').join(' | '):'No DOB entered';
+  $('t-final').textContent='H = Sum of individual eligible loans per applicant (Section 12.3)';
+
+  // For EMI display: use primary applicant tenure (or first with income)
+  const primaryResult = applResults.find(ar=>ar.applTenMo>0) || applResults[0];
+  const n   = primaryResult ? primaryResult.applTenMo : maxTenByVeh;
+  const nYrs= Math.floor(n/12), nMo=n%12;
+
+  const marginAmt=onRoad*marginPctVal/100;const loanI=Math.max(0,onRoad-marginAmt);
+  $('v-price').textContent=fmt(Math.round(onRoad));
+  $('v-margin-lbl').textContent='Margin \u2014 '+marginLabel;
+  $('v-margin').textContent=isTD?'\u20B90 (Nil)':fmt(Math.round(marginAmt))+' ('+marginPctVal+'% of '+fmt(Math.round(onRoad))+')';
+  $('b-I').textContent=fmtExact(loanI);
+  const loanJ=vehType==='2W'?1000000:Infinity;$('fin-J').textContent='\u20B910,00,000.00';
+  const isEligible=issues.length===0;let finalLoan=0,limitingFactor='--';
+  if(isEligible){finalLoan=Math.max(0,Math.min(loanH,loanI,loanJ));if(loanH<=loanI&&loanH<=loanJ)limitingFactor='H - Repayment capacity (income)';else if(loanI<=loanH&&loanI<=loanJ)limitingFactor='I - Vehicle cost after margin';else limitingFactor='J - 2-Wheeler scheme cap Rs.10L';}
+  $('fin-H').textContent=fmtExact(loanH);$('fin-I').textContent=fmtExact(loanI);$('fin-limit').textContent=limitingFactor;$('b-fin').textContent=fmtExact(finalLoan);
+  let emi=0,totalPay=0,totalInt=0;
+  if(finalLoan>0&&n>0&&r>0){const pow=Math.pow(1+r,n);emi=finalLoan*r*pow/(pow-1);totalPay=emi*n;totalInt=totalPay-finalLoan;}
+  const procFee=0;const feeLbl='Processing fee \u2014 100% WAIVED (Festive Vibes 2.0 Campaign)';
+  $('emi-P').textContent=fmtExact(finalLoan);$('emi-r').textContent=roi.toFixed(2)+'% p.a. \xf7 12 = '+(r*100).toFixed(6)+'% /mo';
+  $('emi-n').textContent=n+' months ('+(nYrs>0?nYrs+'y ':'')+nMo+'m) [primary applicant tenure]';
+  $('emi-val').textContent=finalLoan>0?fmtExact(emi):'--';$('emi-total').textContent=finalLoan>0?fmtExact(totalPay):'--';
+  $('emi-int').textContent=finalLoan>0?fmtExact(totalInt)+'  ('+((totalInt/(finalLoan||1))*100).toFixed(4)+'% of principal)':'--';
+  $('fee-lbl').textContent=feeLbl;$('emi-fee').textContent='Nil (100% waived)';
+  if(isEligible&&finalLoan>0){$('r-amt').textContent=fmtExact(finalLoan);$('r-sub').textContent='Tenure per applicant | ROI '+roi.toFixed(2)+'% | EMI '+fmtExact(emi)+'/mo';$('r-badge').innerHTML='<span class="res-badge ok">&#10003; Eligible</span>';}
+  else{$('r-amt').textContent='\u20B9 --';$('r-sub').textContent=isEligible?'Insufficient income or data':'Check alerts below';$('r-badge').innerHTML='<span class="res-badge no">&#10007; Not Eligible</span>';}
+  $('r-emi').textContent=finalLoan>0?fmtExact(emi):'--';$('r-emi-s').textContent=n+' EMIs';$('r-roi').textContent=roi.toFixed(2)+'%';$('r-int').textContent=finalLoan>0?fmtExact(totalInt):'--';$('r-int-s').textContent=finalLoan>0?((totalInt/(finalLoan||1))*100).toFixed(4)+'% of principal':'--';
+  $('r-term').textContent=(nYrs>0?nYrs+' yrs ':'')+nMo+' mo';$('r-term-s').textContent='= '+n+' months (primary)';
+  let ah='';
+  issues.forEach(i=>{ah+='<div class="alert err">&#9888; '+i+'</div>';});
+  warns.forEach(w=>{ah+='<div class="alert warn">&#8505; '+w+'</div>';});
+
+  if(secType==='td100'){
+    ah+='<div class="alert ok">&#10003; 100% Term Deposit: Flat ROI 7.75% (no additional concessions, nil margin, no processing fee) \u2014 Circular 269 Mod 1 + Circular 316 Note 3.</div>';
+  } else {
+    // Show ROI breakdown
+    const isNTC = cibil === -1;
+    let baseROI;
+    if(vehType==='4W'){
+      if(cibil>=731)               baseROI=8.75;
+      else if(cibil>=700||isNTC)   baseROI=8.95;
+      else if(cibil>=650)          baseROI=9.25;
+      else                         baseROI=9.50;
+    } else {
+      baseROI = (cibil>=700||isNTC) ? 10.75 : 11.75;
+    }
+    let concLines=[];
+    let totalConc=0;
+    if(borrowerCat==='govt'){concLines.push('Govt/PSU/Pensioner \u22120.25% (Circ 55 + Circ 269)');totalConc+=0.25;}
+    if(isEV==='yes'){concLines.push('Electric/Hybrid \u22120.10% (Circ 55)');totalConc+=0.10;}
+    if(secType==='neglien'){concLines.push('Negative Lien \u22120.50% (Circ 269)');totalConc+=0.50;}
+    if(totalConc>0.60){concLines.push('<b>Capped at \u22120.60% max (Circ 316 Note 1)</b>');totalConc=0.60;}
+    const finalROI=(baseROI-totalConc).toFixed(2);
+    ah+=`<div class="alert ok" style="line-height:1.8">
+      <b>ROI Breakdown:</b> Base ${baseROI.toFixed(2)}%`
+      +(concLines.length ? ' \u2212 '+concLines.join(' \u2212 ') : ' (no concessions)')
+      +` = <b>${finalROI}% p.a. (Festive Vibes 2.0)</b>
+      ${totalConc===0?'':' | Concession: \u22120.'+Math.round(totalConc*100)+'%'}
+    </div>`;
+    if(borrowerCat==='govt') ah+='<div class="alert ok" style="font-size:11px">&#127979; Govt/PSU salary credited with bank \u2192 processing fee Nil (Circ 269 Mod 5) \u2014 superseded by 100% waiver during campaign.</div>';
+  }
+
+  if(isEligible&&finalLoan>0)
+    ah+='<div class="alert ok">&#10003; Festive Vibes 2.0 — Processing fee 100% WAIVED. Sanction by 15/03/2026, disburse by 31/03/2026. RTA registration in AP/Telangana/Yanam only.</div>';
+  $('alerts-zone').innerHTML=ah;
+}
+addApplicant(true);setVeh('4W');
+</script>
+</body>
+</html>

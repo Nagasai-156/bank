@@ -1,0 +1,553 @@
+/* ═══════════════════════════════════════════
+   Mortgage Calculator — Professional Design
+   ═══════════════════════════════════════════ */
+
+.mc-page {
+  min-height: 100vh;
+  background: #f5f6f8;
+  font-family: 'Inter', sans-serif;
+  color: #1a1f2e;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Nav ── */
+.mc-nav {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.mc-nav-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.mc-back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.mc-back:hover { color: #1b4332; }
+.mc-nav-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1b4332;
+}
+
+/* ── Container ── */
+.mc-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  width: 100%;
+  flex: 1;
+}
+
+/* ── Progress Steps ── */
+.mc-progress {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.mc-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 14px 20px;
+  font-family: inherit;
+  transition: all 0.15s;
+  flex: 1;
+  border-right: 1px solid #e5e7eb;
+}
+.mc-step:last-child { border-right: none; }
+.mc-step:hover { background: #f9fafb; }
+.mc-step.active { background: #f0fdf4; }
+.mc-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: #e5e7eb;
+  color: #6b7280;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.mc-step.active .mc-step-num {
+  background: #1b4332;
+  color: #fff;
+}
+.mc-step.done .mc-step-num {
+  background: #d1fae5;
+  color: #1b4332;
+}
+.mc-step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  transition: color 0.15s;
+}
+.mc-step.active .mc-step-label { color: #1b4332; }
+.mc-step.done .mc-step-label { color: #4b5563; }
+.mc-progress-bar { display: none; }
+.mc-progress-fill { display: none; }
+
+/* ── Animations ── */
+.mc-fade {
+  animation: mcFadeIn 0.3s ease;
+}
+@keyframes mcFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Section ── */
+.mc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Cards ── */
+.mc-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.mc-card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+.mc-card-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 1.25rem;
+}
+.mc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+.mc-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mc-card-name {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+.mc-applicant-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #1b4332;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Toggle Selection ── */
+.mc-toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: all 0.2s;
+  width: 100%;
+}
+.mc-toggle:hover { border-color: #c6d8ce; background: #fafdf9; }
+.mc-toggle.active {
+  border-color: #1b4332;
+  background: #f0fdf4;
+}
+.mc-toggle-icon { font-size: 1.5rem; flex-shrink: 0; }
+.mc-toggle-content { flex: 1; }
+.mc-toggle-title { font-size: 15px; font-weight: 600; color: #111827; }
+.mc-toggle-sub { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.mc-toggle-check { width: 24px; flex-shrink: 0; }
+
+/* ── Profession Buttons ── */
+.mc-prof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.mc-prof-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transition: all 0.2s;
+}
+.mc-prof-btn:hover { border-color: #c6d8ce; }
+.mc-prof-btn.active { border-color: #1b4332; background: #f0fdf4; }
+.mc-prof-ico { font-size: 1.3rem; }
+.mc-prof-lbl { font-size: 13px; font-weight: 600; color: #111827; }
+.mc-prof-sub { font-size: 10px; color: #6b7280; }
+
+/* ── Form Sections ── */
+.mc-form-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f0f1f3;
+}
+.mc-form-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1b4332;
+  margin-bottom: 12px;
+}
+.mc-form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mc-form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+/* ── Fields & Inputs ── */
+.mc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mc-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+}
+.mc-field input,
+.mc-field select {
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  width: 100%;
+}
+.mc-field input:focus,
+.mc-field select:focus {
+  outline: none;
+  border-color: #1b4332;
+  box-shadow: 0 0 0 3px rgba(27,67,50,0.08);
+}
+.mc-field input::placeholder { color: #c4c8d0; }
+.mc-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.mc-input-group {
+  position: relative;
+}
+.mc-input-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #9ca3af;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1;
+}
+.mc-input-group input { padding-left: 30px; }
+.mc-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+.mc-hint.success { color: #1b4332; font-weight: 500; }
+.mc-hint.error { color: #dc2626; }
+
+/* ── ITR Table ── */
+.mc-itr-table { display: flex; flex-direction: column; gap: 8px; }
+.mc-itr-header {
+  display: grid;
+  grid-template-columns: 120px 1fr 1fr;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0 4px;
+}
+.mc-itr-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.mc-itr-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1b4332;
+  background: #f0fdf4;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+.mc-info-box {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #1b4332;
+  line-height: 1.5;
+}
+
+/* ── Buttons ── */
+.mc-btn-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed #d1d5db;
+  border-radius: 14px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+}
+.mc-btn-add:hover { border-color: #1b4332; color: #1b4332; background: #f0fdf4; }
+.mc-btn-remove {
+  background: none;
+  border: 1.5px solid #fecaca;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dc2626;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.mc-btn-remove:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+.mc-nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+.mc-btn-next, .mc-btn-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+  border: none;
+}
+.mc-btn-next {
+  background: #1b4332;
+  color: #fff;
+}
+.mc-btn-next:hover { background: #2d6a4f; }
+.mc-btn-back {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+.mc-btn-back:hover { background: #e5e7eb; }
+.mc-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  background: #1b4332;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(27,67,50,0.25);
+  transition: all 0.15s;
+}
+.mc-btn-primary:hover { background: #2d6a4f; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(27,67,50,0.3); }
+
+/* ── Results ── */
+.mc-result {
+  margin-top: 1.5rem;
+  scroll-margin-top: 80px;
+}
+.mc-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.mc-result-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+.mc-badge {
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mc-badge.ok { background: #d1fae5; color: #065f46; }
+.mc-badge.no { background: #fee2e2; color: #991b1b; }
+
+.mc-result-hero {
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.mc-result-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 8px;
+}
+.mc-result-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.mc-result-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 10px;
+}
+
+.mc-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.mc-result-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  text-align: center;
+}
+.mc-result-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+.mc-result-card-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1b4332;
+  letter-spacing: -0.01em;
+  word-break: break-all;
+}
+.mc-result-card-sub {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* ── Footer ── */
+.mc-footer {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 12px;
+  color: #9ca3af;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .mc-container { padding: 1rem; }
+  .mc-form-grid-2, .mc-form-grid-3 { grid-template-columns: 1fr; }
+  .mc-prof-grid { grid-template-columns: 1fr; gap: 8px; }
+  .mc-result-grid { grid-template-columns: 1fr 1fr; }
+  .mc-itr-header, .mc-itr-row { grid-template-columns: 80px 1fr 1fr; gap: 6px; }
+  .mc-step-label { display: none; }
+  .mc-step { justify-content: center; padding: 12px; }
+}
+@media (max-width: 480px) {
+  .mc-result-grid { grid-template-columns: 1fr; }
+  .mc-toggle { padding: 12px; }
+  .mc-nav-buttons { flex-direction: column; gap: 8px; }
+  .mc-nav-buttons > * { width: 100%; justify-content: center; }
+}
