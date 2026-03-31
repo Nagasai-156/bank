@@ -1,0 +1,4 @@
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Inter','Source Sans 3',sans-serif;background:#f8f9fb;color:#1a1f2e;min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+#root{min-height:100vh;display:flex;flex-direction:column}
